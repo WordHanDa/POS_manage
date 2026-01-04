@@ -9,41 +9,33 @@ const Home = ({ API_BASE }) => {
         const fetchBusinessStatus = async () => {
             try {
                 const response = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${today}`);
-
-                // 1. 先檢查 Response 是否成功 (200-299)
-                if (!response.ok) {
-                    // 如果是 401 或 500，這裡會捕捉到
-                    console.error(`伺服器回傳錯誤代碼: ${response.status}`);
-                    return;
-                }
-
                 const data = await response.json();
 
-                // 2. 檢查回傳的是否真的是陣列
-                if (!Array.isArray(data)) {
-                    console.error("API 回傳格式錯誤，預期應為陣列，但收到：", data);
-                    return;
+                if (Array.isArray(data)) {
+                    // 1. 計算今日總訂單數 (以唯一 ORDER_ID 計數)
+                    const uniqueOrders = [...new Set(data.map(item => item.ORDER_ID))];
+
+                    // 2. 修正營收計算：改用 ORDER_MOUNT 欄位
+                    const dailyRevenue = data.reduce((acc, curr) => {
+                        // 使用 Number() 確保是數字，若欄位不存在則加 0
+                        const mount = Number(curr.ORDER_MOUNT) || 0;
+                        return acc + mount;
+                    }, 0);
+
+                    // 3. 計算待出餐：根據你的 JSON，欄位似乎改成了 SEND
+                    // 假設 SEND === 0 代表尚未出餐
+                    const pendingCount = data.filter(item => item.SEND === 0).length;
+
+                    setSummary({
+                        revenue: dailyRevenue,
+                        pending: pendingCount,
+                        totalOrders: uniqueOrders.length
+                    });
+                } else {
+                    console.error("回傳資料不是陣列:", data);
                 }
-
-                // 3. 確保資料存在後才進行計算
-                const uniqueOrders = [...new Set(data.map(item => item.ORDER_ID))];
-
-                const dailyRevenue = data.reduce((acc, curr) => {
-                    // 這裡同時修復 NaN 的問題：確保欄位名稱正確且為數字
-                    const price = Number(curr.PRICE_AT_SALE || 0);
-                    const qty = Number(curr.QUANTITY || 0);
-                    return acc + (price * qty);
-                }, 0);
-
-                const pendingCount = data.filter(item => item.ITEM_SEND === 0).length;
-
-                setSummary({
-                    revenue: dailyRevenue,
-                    pending: pendingCount,
-                    totalOrders: uniqueOrders.length
-                });
             } catch (err) {
-                console.error("無法讀取營業狀況 (網路或連線問題):", err);
+                console.error("無法讀取營業狀況:", err);
             }
         };
 
