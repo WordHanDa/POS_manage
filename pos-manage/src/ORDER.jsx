@@ -230,9 +230,17 @@ const ORDER = ({ API_BASE }) => {
                       </>
                     )}
 
-                    <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px' }}>
-                      刪除
-                    </button>
+                    {order.settle === 1 ? (
+                      null
+                    ) : (
+                      <button
+                        onClick={() => deleteOrder(order.ORDER_ID)}
+                        className="btn-delete"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px', color: 'red' }}
+                      >
+                        刪除
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
