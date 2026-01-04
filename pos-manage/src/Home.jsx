@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import './Management.css';
 
 const Home = ({ API_BASE }) => {
@@ -9,22 +8,33 @@ const Home = ({ API_BASE }) => {
     useEffect(() => {
         const fetchBusinessStatus = async () => {
             try {
-                // 使用您現有的日期篩選 API 來取得今日數據
                 const response = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${today}`);
+
+                // 1. 先檢查 Response 是否成功 (200-299)
+                if (!response.ok) {
+                    // 如果是 401 或 500，這裡會捕捉到
+                    console.error(`伺服器回傳錯誤代碼: ${response.status}`);
+                    return;
+                }
+
                 const data = await response.json();
 
-                // 1. 計算今日總訂單數 (以唯一 ORDER_ID 計數)
+                // 2. 檢查回傳的是否真的是陣列
+                if (!Array.isArray(data)) {
+                    console.error("API 回傳格式錯誤，預期應為陣列，但收到：", data);
+                    return;
+                }
+
+                // 3. 確保資料存在後才進行計算
                 const uniqueOrders = [...new Set(data.map(item => item.ORDER_ID))];
 
-                // 2. 計算今日總營業額 (需確保後端有傳回單價，或從訂單列表 API 取得)
-                // 這裡暫以明細加總計算
                 const dailyRevenue = data.reduce((acc, curr) => {
-                    const price = Number(curr.PRICE_AT_SALE) || 0;
-                    const qty = Number(curr.QUANTITY) || 0;
+                    // 這裡同時修復 NaN 的問題：確保欄位名稱正確且為數字
+                    const price = Number(curr.PRICE_AT_SALE || 0);
+                    const qty = Number(curr.QUANTITY || 0);
                     return acc + (price * qty);
                 }, 0);
 
-                // 3. 計算待製作(未出餐)項目
                 const pendingCount = data.filter(item => item.ITEM_SEND === 0).length;
 
                 setSummary({
@@ -33,7 +43,7 @@ const Home = ({ API_BASE }) => {
                     totalOrders: uniqueOrders.length
                 });
             } catch (err) {
-                console.error("無法讀取營業狀況:", err);
+                console.error("無法讀取營業狀況 (網路或連線問題):", err);
             }
         };
 
