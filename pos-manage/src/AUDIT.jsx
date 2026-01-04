@@ -93,7 +93,7 @@ const AUDIT = ({API_BASE}) => {
         </div>
       </header>
 
-      {error && <div className="error-message">⚠️ 錯誤：{error}</div>}
+      {error && <div className="error-message">錯誤：{error}</div>}
 
       <div className="filter-panel">
         <div className="filter-group">
