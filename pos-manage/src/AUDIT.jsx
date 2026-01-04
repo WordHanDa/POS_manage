@@ -117,7 +117,7 @@ const AUDIT = ({API_BASE}) => {
               })} style={{ cursor: 'pointer' }}>
                 訂單編號 {sortConfig.key === 'ORDER_ID' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
               </th>
-              <th>桌號 (SEAT_ID)</th>
+              <th>桌號</th>
               <th onClick={() => setSortConfig({
                 key: 'ORDER_DATE',
                 direction: sortConfig.direction === 'asc' ? 'desc' : 'asc'
