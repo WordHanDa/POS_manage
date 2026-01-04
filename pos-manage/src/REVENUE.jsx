@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './Management.css';
 
 const REVENUE = ({ API_BASE }) => {
-  // 取得 UTC+8 的當前日期字串 (YYYY-MM-DD)
   const getTodayUTC8 = () => {
     return new Intl.DateTimeFormat('sv-SE', {
       timeZone: 'Asia/Taipei',
@@ -15,8 +14,9 @@ const REVENUE = ({ API_BASE }) => {
   const [selectedDate, setSelectedDate] = useState(getTodayUTC8());
   const [orderDetails, setOrderDetails] = useState([]);
   const [loading, setLoading] = useState(false);
+  // 新增：用於觸發畫面每秒重繪，讓秒數跳動
+  const [now, setNow] = useState(new Date());
 
-  // 取得資料邏輯
   const fetchRevenueDetails = async (date) => {
     setLoading(true);
     try {
@@ -31,7 +31,21 @@ const REVENUE = ({ API_BASE }) => {
     }
   };
 
-  // 處理出餐動作
+  // 格式化經過時間的邏輯
+  const formatElapsedTime = (orderTime) => {
+    const diffInSeconds = Math.floor((now - new Date(orderTime)) / 1000);
+    if (diffInSeconds < 0) return "0秒";
+    
+    if (diffInSeconds < 60) {
+      return `${diffInSeconds}秒`;
+    } else {
+      const mins = Math.floor(diffInSeconds / 60);
+      const secs = diffInSeconds % 60;
+      // 補零邏輯，例如 01:05
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+  };
+
   const handleItemSend = async (item) => {
     if (!item) return;
     const confirmMsg = `確認出餐？\n[桌號]：${item.SEAT_NAME}\n[品項]：${item.ITEM_NAME} x ${item.QUANTITY}`;
@@ -45,7 +59,6 @@ const REVENUE = ({ API_BASE }) => {
       });
 
       if (response.ok) {
-        // 出餐成功後立即更新列表
         fetchRevenueDetails(selectedDate);
       } else {
         alert("更新失敗，請稍後再試");
@@ -55,12 +68,18 @@ const REVENUE = ({ API_BASE }) => {
     }
   };
 
-  // 自動輪詢：當日期改變或每 30 秒執行一次
+  // 每 30 秒抓取一次 API 資料
   useEffect(() => {
     fetchRevenueDetails(selectedDate);
-    const interval = setInterval(() => fetchRevenueDetails(selectedDate), 30000);
-    return () => clearInterval(interval);
+    const apiInterval = setInterval(() => fetchRevenueDetails(selectedDate), 30000);
+    return () => clearInterval(apiInterval);
   }, [selectedDate]);
+
+  // 每 1 秒更新一次本地時間（驅動秒數顯示）
+  useEffect(() => {
+    const timerInterval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timerInterval);
+  }, []);
 
   return (
     <div className="container">
@@ -91,7 +110,7 @@ const REVENUE = ({ API_BASE }) => {
         <table className="item-table">
           <thead>
             <tr>
-              <th>優先級/時間</th>
+              <th>優先級/等待時間</th>
               <th>桌號</th>
               <th>品項內容</th>
               <th>備註</th>
@@ -101,9 +120,9 @@ const REVENUE = ({ API_BASE }) => {
           <tbody>
             {orderDetails.length > 0 ? (
               orderDetails.map((item, index) => {
-                // 計算等待時間 (分鐘)
-                const waitTime = Math.floor((new Date() - new Date(item.ORDER_DATE)) / 60000);
-                const isUrgent = waitTime > 5 && item.ITEM_SEND === 0;
+                // 超過 5 分鐘標記為緊急
+                const diffInSeconds = Math.floor((now - new Date(item.ORDER_DATE)) / 1000);
+                const isUrgent = diffInSeconds > 300 && item.ITEM_SEND === 0;
 
                 return (
                   <tr
@@ -112,18 +131,23 @@ const REVENUE = ({ API_BASE }) => {
                       borderLeft: item.ITEM_SEND === 0 
                         ? `6px solid ${isUrgent ? '#f5222d' : '#52c41a'}` 
                         : '6px solid #d9d9d9',
+                      backgroundColor: isUrgent ? '#fff1f0' : 'transparent' // 緊急時底色淡紅
                     }}
                   >
                     <td>
                       <div style={{ fontWeight: 'bold', color: isUrgent ? '#f5222d' : '' }}>
                         {item.ITEM_SEND === 0 ? `P${index + 1}` : 'DONE'}
                       </div>
-                      <small style={{ color: '#888' }}>
-                        {new Date(item.ORDER_DATE).toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })}
-                      </small>
+                      <div style={{ 
+                        fontSize: '0.9em', 
+                        color: isUrgent ? '#f5222d' : '#1890ff',
+                        fontWeight: item.ITEM_SEND === 0 ? 'bold' : 'normal'
+                      }}>
+                        {item.ITEM_SEND === 0 ? formatElapsedTime(item.ORDER_DATE) : '---'}
+                      </div>
                     </td>
                     <td>
-                      <span className="type-badge" style={{ padding: '4px 8px', background: '#1890ff', color: '', borderRadius: '4px' }}>
+                      <span className="type-badge" style={{ padding: '4px 8px', background: '#1890ff', color: '#fff', borderRadius: '4px' }}>
                         {item.SEAT_NAME}
                       </span>
                     </td>
@@ -143,9 +167,9 @@ const REVENUE = ({ API_BASE }) => {
                           borderRadius: '4px',
                           border: 'none',
                           fontWeight: 'bold',
-                          backgroundColor: item.ITEM_SEND === 1 ? '' : '#52c41a',
-                          cursor: item.ITEM_SEND === 1 ? 'not-allowed' : 'pointer',
-                          transition: 'all 0.3s'
+                          backgroundColor: item.ITEM_SEND === 1 ? '#d9d9d9' : '#52c41a',
+                          color: '#fff',
+                          cursor: item.ITEM_SEND === 1 ? 'not-allowed' : 'pointer'
                         }}
                         onClick={() => handleItemSend(item)}
                       >
