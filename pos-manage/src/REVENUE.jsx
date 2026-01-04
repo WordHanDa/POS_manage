@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Management.css';
 
 const REVENUE = ({ API_BASE }) => {
+  // 取得 UTC+8 的當前日期字串 (YYYY-MM-DD)
   const getTodayUTC8 = () => {
     return new Intl.DateTimeFormat('sv-SE', {
       timeZone: 'Asia/Taipei',
@@ -14,9 +15,10 @@ const REVENUE = ({ API_BASE }) => {
   const [selectedDate, setSelectedDate] = useState(getTodayUTC8());
   const [orderDetails, setOrderDetails] = useState([]);
   const [loading, setLoading] = useState(false);
-  // 新增：用於觸發畫面每秒重繪，讓秒數跳動
+  // 新增：用於驅動畫面每秒更新的時間狀態
   const [now, setNow] = useState(new Date());
 
+  // 取得資料邏輯
   const fetchRevenueDetails = async (date) => {
     setLoading(true);
     try {
@@ -31,30 +33,26 @@ const REVENUE = ({ API_BASE }) => {
     }
   };
 
-  // 格式化經過時間的邏輯
-  // 修改 formatElapsedTime 函式
+  // 格式化經過時間邏輯
   const formatElapsedTime = (orderTime) => {
-    // 將回傳的 ISO 字串轉換為 Date 物件
     const orderDate = new Date(orderTime);
+    // 計算毫秒差並轉為總秒數
+    const diffInSeconds = Math.floor((now.getTime() - orderDate.getTime()) / 1000);
+    
+    // 避免因為伺服器/客戶端時間微小差距導致負數
+    const totalSeconds = diffInSeconds < 0 ? 0 : diffInSeconds;
 
-    // 計算差異（毫秒）
-    const diffInMs = now.getTime() - orderDate.getTime();
-    const diffInSeconds = Math.floor(diffInMs / 1000);
-
-    // 偵錯用：如果還是 0 秒，可以在此 console.log 檢查
-    // console.log('Current Now:', now.toISOString(), 'Order Date:', orderDate.toISOString());
-
-    if (diffInSeconds <= 0) return "1秒內"; // 處理毫秒差或剛下單的情況
-
-    if (diffInSeconds < 60) {
-      return `${diffInSeconds}秒`;
+    if (totalSeconds < 60) {
+      return `${totalSeconds}秒`;
     } else {
-      const mins = Math.floor(diffInSeconds / 60);
-      const secs = diffInSeconds % 60;
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      // 顯示格式為 分:秒，秒數不滿10位補0
       return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
   };
 
+  // 處理出餐動作
   const handleItemSend = async (item) => {
     if (!item) return;
     const confirmMsg = `確認出餐？\n[桌號]：${item.SEAT_NAME}\n[品項]：${item.ITEM_NAME} x ${item.QUANTITY}`;
@@ -77,19 +75,17 @@ const REVENUE = ({ API_BASE }) => {
     }
   };
 
-  // 每 30 秒抓取一次 API 資料
+  // 自動輪詢 API：當日期改變或每 30 秒執行一次
   useEffect(() => {
     fetchRevenueDetails(selectedDate);
-    const apiInterval = setInterval(() => fetchRevenueDetails(selectedDate), 30000);
-    return () => clearInterval(apiInterval);
+    const interval = setInterval(() => fetchRevenueDetails(selectedDate), 30000);
+    return () => clearInterval(interval);
   }, [selectedDate]);
 
-  // 每 1 秒更新一次本地時間（驅動秒數顯示）
+  // 每秒更新一次本地時間，讓計時器「動起來」
   useEffect(() => {
-    const timerInterval = setInterval(() => {
-      setNow(new Date()); // 每秒更新一次當前時間
-    }, 1000);
-    return () => clearInterval(timerInterval);
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
@@ -100,10 +96,10 @@ const REVENUE = ({ API_BASE }) => {
 
       <div className="item-form" style={{ marginBottom: '20px', padding: '20px', borderRadius: '8px' }}>
         <label style={{ fontWeight: 'bold', marginRight: '10px' }}>選擇日期：</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
+        <input 
+          type="date" 
+          value={selectedDate} 
+          onChange={(e) => setSelectedDate(e.target.value)} 
           style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
         />
         <span style={{ marginLeft: '20px' }}>
@@ -131,28 +127,29 @@ const REVENUE = ({ API_BASE }) => {
           <tbody>
             {orderDetails.length > 0 ? (
               orderDetails.map((item, index) => {
-                // 超過 5 分鐘標記為緊急
-                const diffInSeconds = Math.floor((now - new Date(item.ORDER_DATE)) / 1000);
+                const diffInSeconds = Math.floor((now.getTime() - new Date(item.ORDER_DATE).getTime()) / 1000);
+                // 超過 5 分鐘 (300秒) 標記為緊急
                 const isUrgent = diffInSeconds > 300 && item.ITEM_SEND === 0;
 
                 return (
                   <tr
                     key={item.DETAIL_ID}
                     style={{
-                      borderLeft: item.ITEM_SEND === 0
-                        ? `6px solid ${isUrgent ? '#f5222d' : '#52c41a'}`
+                      borderLeft: item.ITEM_SEND === 0 
+                        ? `6px solid ${isUrgent ? '#f5222d' : '#52c41a'}` 
                         : '6px solid #d9d9d9',
-                      backgroundColor: isUrgent ? '#fff1f0' : 'transparent' // 緊急時底色淡紅
+                      backgroundColor: isUrgent ? '#fff1f0' : 'transparent'
                     }}
                   >
                     <td>
-                      <div style={{ fontWeight: 'bold', color: isUrgent ? '#f5222d' : '' }}>
+                      <div style={{ fontWeight: 'bold', color: isUrgent ? '#f5222d' : '#fff' }}>
                         {item.ITEM_SEND === 0 ? `P${index + 1}` : 'DONE'}
                       </div>
-                      <div style={{
-                        fontSize: '0.9em',
-                        color: isUrgent ? '#f5222d' : '#1890ff',
-                        fontWeight: item.ITEM_SEND === 0 ? 'bold' : 'normal'
+                      <div style={{ 
+                        fontSize: '0.95em', 
+                        fontFamily: 'monospace',
+                        color: isUrgent ? '#f5222d' : '#40a9ff',
+                        fontWeight: 'bold'
                       }}>
                         {item.ITEM_SEND === 0 ? formatElapsedTime(item.ORDER_DATE) : '---'}
                       </div>
@@ -166,7 +163,7 @@ const REVENUE = ({ API_BASE }) => {
                       <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>{item.ITEM_NAME}</div>
                       <div style={{ color: '#f5222d', fontWeight: 'bold' }}>x {item.QUANTITY}</div>
                     </td>
-                    <td className="description-cell" style={{ color: '#666', fontStyle: item.ORDER_NOTE ? 'normal' : 'italic' }}>
+                    <td className="description-cell" style={{ color: '#999', fontStyle: item.ORDER_NOTE ? 'normal' : 'italic' }}>
                       {item.ORDER_NOTE || '無備註'}
                     </td>
                     <td>
@@ -178,8 +175,8 @@ const REVENUE = ({ API_BASE }) => {
                           borderRadius: '4px',
                           border: 'none',
                           fontWeight: 'bold',
-                          backgroundColor: item.ITEM_SEND === 1 ? '#d9d9d9' : '#52c41a',
-                          color: '#fff',
+                          backgroundColor: item.ITEM_SEND === 1 ? '#434343' : '#52c41a',
+                          color: item.ITEM_SEND === 1 ? '#8c8c8c' : '#fff',
                           cursor: item.ITEM_SEND === 1 ? 'not-allowed' : 'pointer'
                         }}
                         onClick={() => handleItemSend(item)}
@@ -193,7 +190,7 @@ const REVENUE = ({ API_BASE }) => {
             ) : (
               <tr>
                 <td colSpan="5" style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
-                  今日目前沒有待處理的訂單項目
+                  目前沒有待處理的項目
                 </td>
               </tr>
             )}
