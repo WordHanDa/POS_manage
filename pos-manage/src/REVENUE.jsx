@@ -65,7 +65,7 @@ const REVENUE = ({ API_BASE }) => {
   return (
     <div className="container">
       <header>
-        <h1>出菜清單 (UTC+8)</h1>
+        <h1>出菜清單</h1>
       </header>
 
       <div className="item-form" style={{ marginBottom: '20px', padding: '20px', borderRadius: '8px' }}>
