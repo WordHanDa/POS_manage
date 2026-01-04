@@ -142,10 +142,9 @@ const REVENUE = ({ API_BASE }) => {
                         style={{
                           padding: '8px 16px',
                           borderRadius: '4px',
-                          color: '#fff',
                           border: 'none',
                           fontWeight: 'bold',
-                          backgroundColor: item.ITEM_SEND === 1 ? '#d9d9d9' : '#52c41a',
+                          backgroundColor: item.ITEM_SEND === 1 ? '' : '#52c41a',
                           cursor: item.ITEM_SEND === 1 ? 'not-allowed' : 'pointer',
                           transition: 'all 0.3s'
                         }}
