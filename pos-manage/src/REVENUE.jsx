@@ -115,7 +115,7 @@ const REVENUE = ({ API_BASE }) => {
                     }}
                   >
                     <td>
-                      <div style={{ fontWeight: 'bold', color: isUrgent ? '#f5222d' : '#333' }}>
+                      <div style={{ fontWeight: 'bold', color: isUrgent ? '#f5222d' : '' }}>
                         {item.ITEM_SEND === 0 ? `P${index + 1}` : 'DONE'}
                       </div>
                       <small style={{ color: '#888' }}>
