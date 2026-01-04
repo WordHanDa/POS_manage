@@ -139,7 +139,7 @@ const AUDIT = ({API_BASE}) => {
               <React.Fragment key={order.ORDER_ID}>
                 <tr className={expandedOrder === order.ORDER_ID ? 'expanded-row' : ''}>
                   <td>#{order.ORDER_ID}</td>
-                  <td>{order.SEAT_NAME} 號桌</td>
+                  <td>{order.SEAT_NAME}</td>
                   <td>{new Date(order.ORDER_DATE).toLocaleString()}</td>
                   <td className="price-cell"><strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong></td>
                   <td>{order.NOTE || '-'}</td>
