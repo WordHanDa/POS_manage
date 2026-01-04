@@ -112,7 +112,6 @@ const REVENUE = ({ API_BASE }) => {
                       borderLeft: item.ITEM_SEND === 0 
                         ? `6px solid ${isUrgent ? '#f5222d' : '#52c41a'}` 
                         : '6px solid #d9d9d9',
-                      backgroundColor: isUrgent ? '#fff1f0' : 'white'
                     }}
                   >
                     <td>
@@ -124,7 +123,7 @@ const REVENUE = ({ API_BASE }) => {
                       </small>
                     </td>
                     <td>
-                      <span className="type-badge" style={{ padding: '4px 8px', background: '#1890ff', color: '#fff', borderRadius: '4px' }}>
+                      <span className="type-badge" style={{ padding: '4px 8px', background: '#1890ff', color: '', borderRadius: '4px' }}>
                         {item.SEAT_NAME}
                       </span>
                     </td>
