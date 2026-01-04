@@ -103,7 +103,7 @@ const REVENUE = ({ API_BASE }) => {
               orderDetails.map((item, index) => {
                 // 計算等待時間 (分鐘)
                 const waitTime = Math.floor((new Date() - new Date(item.ORDER_DATE)) / 60000);
-                const isUrgent = waitTime > 15 && item.ITEM_SEND === 0;
+                const isUrgent = waitTime > 5 && item.ITEM_SEND === 0;
 
                 return (
                   <tr
