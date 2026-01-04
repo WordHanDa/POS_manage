@@ -118,7 +118,7 @@ const ORDER = ({ API_BASE }) => {
       <h1>訂單管理 (ORDER)</h1>
 
       {/* 統計摘要 */}
-      <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '8px' }}>
+      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ffe58f', borderRadius: '8px' }}>
         <strong>📢 即時統計：</strong>
         目前店內有 <span style={{ color: '#f5222d', fontSize: '1.2em', fontWeight: 'bold' }}>{unSettleCount}</span> 筆訂單尚未結清。
       </div>
@@ -202,7 +202,7 @@ const ORDER = ({ API_BASE }) => {
               const isSettled = order.settle === 1;
 
               return (
-                <tr key={order.ORDER_ID} style={{ backgroundColor: isSettled ? '#f5f5f5' : 'white' }}>
+                <tr key={order.ORDER_ID}>
                   <td>{order.ORDER_ID}</td>
                   <td>
                     <span className="type-badge">
