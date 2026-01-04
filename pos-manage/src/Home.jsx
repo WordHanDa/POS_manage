@@ -17,9 +17,10 @@ const Home = ({ API_BASE }) => {
 
                     // 2. 修正營收計算：改用 ORDER_MOUNT 欄位
                     const dailyRevenue = data.reduce((acc, curr) => {
-                        // 使用 Number() 確保是數字，若欄位不存在則加 0
-                        const mount = Number(curr.ORDER_MOUNT) || 0;
-                        return acc + mount;
+                        // 確保使用 PRICE_AT_SALE (這是我們在 SQL 給的別名)
+                        const price = Number(curr.PRICE_AT_SALE) || 0;
+                        const qty = Number(curr.QUANTITY) || 0;
+                        return acc + (price * qty);
                     }, 0);
 
                     // 3. 計算待出餐：根據你的 JSON，欄位似乎改成了 SEND
