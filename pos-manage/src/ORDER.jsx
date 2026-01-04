@@ -188,18 +188,18 @@ const ORDER = ({ API_BASE }) => {
                     </span>
                   </td>
                   <td>
-                    {/* 顯示出單狀態 */}
-                    <span className="type-badge" style={{
-                      backgroundColor: order.SEND === 1 ? '#52c41a' : '#f5222d',
-                      color: 'white',
-                      marginRight: '5px'
-                    }}>
-                      {order.SEND === 1 ? '全部完成' : '製作中'}
-                    </span>
-                    {/* 顯示結帳狀態 */}
-                    {isSettled && (
-                      <span className="type-badge">
+                    {isSettled ? (
+                      /* 優先判斷：如果已結清，只顯示已結清標籤 */
+                      <span className="type-badge" style={{ backgroundColor: '#8c8c8c', color: 'white' }}>
                         已結清
+                      </span>
+                    ) : (
+                      /* 若未結清，顯示原本的製作/出單狀態 */
+                      <span className="type-badge" style={{
+                        backgroundColor: order.SEND === 1 ? '#52c41a' : '#f5222d',
+                        color: 'white'
+                      }}>
+                        {order.SEND === 1 ? '全部完成' : '製作中'}
                       </span>
                     )}
                   </td>
