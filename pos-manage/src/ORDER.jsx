@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import './Management.css'; 
+import { Link } from 'react-router-dom'; // 匯入 Link 以便跳轉
+import './Management.css';
 
 const ORDER = () => {
   const [orders, setOrders] = useState([]);
-  const [newOrder, setNewOrder] = useState({ seatId: '', mount: '', note: '' });
+  const [seats, setSeats] = useState([]);
+  const [newOrder, setNewOrder] = useState({ seatId: '', mount: 0, note: '' }); // 金額預設為 0
   const [editingOrder, setEditingOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,7 +20,6 @@ const ORDER = () => {
       if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
       setOrders(data);
-      setError(null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -26,7 +27,19 @@ const ORDER = () => {
     }
   };
 
-  // 2. 新增/更新訂單提交
+  // 2. 取得所有座位
+  const fetchSeats = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/SEAT`);
+      if (!response.ok) throw new Error('Failed to fetch seats');
+      const data = await response.json();
+      setSeats(data);
+    } catch (err) {
+      console.error("Error fetching seats:", err);
+    }
+  };
+
+  // 3. 提交表單 (手動新增/編輯)
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isEditing = !!editingOrder;
@@ -34,12 +47,12 @@ const ORDER = () => {
     const method = isEditing ? 'PUT' : 'POST';
     
     const payload = isEditing ? {
-      seatId: editingOrder.SEAT_ID,
+      seatId: parseInt(editingOrder.SEAT_ID),
       mount: parseFloat(editingOrder.ORDER_MOUNT),
       note: editingOrder.NOTE
     } : {
       seatId: parseInt(newOrder.seatId),
-      mount: parseFloat(newOrder.mount),
+      mount: parseFloat(newOrder.mount || 0),
       note: newOrder.note
     };
 
@@ -51,7 +64,7 @@ const ORDER = () => {
       });
       if (!response.ok) throw new Error('Operation failed');
       
-      setNewOrder({ seatId: '', mount: '', note: '' });
+      setNewOrder({ seatId: '', mount: 0, note: '' });
       setEditingOrder(null);
       fetchOrders();
     } catch (err) {
@@ -59,9 +72,8 @@ const ORDER = () => {
     }
   };
 
-  // 3. 刪除訂單
   const deleteOrder = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this order?')) return;
+    if (!window.confirm('確定要刪除此訂單嗎？（警告：請確保已手動刪除相關明細）')) return;
     try {
       const response = await fetch(`${API_BASE}/ORDER/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Delete failed');
@@ -73,48 +85,43 @@ const ORDER = () => {
 
   useEffect(() => {
     fetchOrders();
+    fetchSeats();
   }, []);
 
   return (
     <div className="container">
-      <h1>ORDER Management</h1>
+      <h1>訂單管理 (ORDER)</h1>
       
       {error && <div className="error-message">{error}</div>}
       
-      {/* Add/Edit Form */}
+      {/* 新增/編輯 表單 */}
       <form onSubmit={handleSubmit} className="item-form">
-        <h2>{editingOrder ? 'Edit Order' : 'Add New Order'}</h2>
+        <h2>{editingOrder ? '編輯訂單備註' : '快速建立訂單'}</h2>
         
         <div className="form-grid">
           <div className="form-group">
-            <label>Seat ID:</label>
-            <input
-              type="number"
+            <label>選擇座位:</label>
+            <select
+              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
               value={editingOrder ? editingOrder.SEAT_ID : newOrder.seatId}
               onChange={(e) => editingOrder 
                 ? setEditingOrder({ ...editingOrder, SEAT_ID: e.target.value })
                 : setNewOrder({ ...newOrder, seatId: e.target.value })
               }
               required
-            />
-          </div>
-          <div className="form-group">
-            <label>Amount ($):</label>
-            <input
-              type="number"
-              step="0.01"
-              value={editingOrder ? editingOrder.ORDER_MOUNT : newOrder.mount}
-              onChange={(e) => editingOrder 
-                ? setEditingOrder({ ...editingOrder, ORDER_MOUNT: e.target.value })
-                : setNewOrder({ ...newOrder, mount: e.target.value })
-              }
-              required
-            />
+            >
+              <option value="">-- 請選擇座位 --</option>
+              {seats.map(seat => (
+                <option key={seat.SEAT_ID} value={seat.SEAT_ID}>
+                  {seat.SEAT_NAME}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        <div className="description-area">
-          <label>Note:</label>
+        <div className="description-area" style={{ marginTop: '15px' }}>
+          <label>備註 (NOTE):</label>
           <textarea
             value={editingOrder ? editingOrder.NOTE : newOrder.note}
             onChange={(e) => editingOrder 
@@ -126,48 +133,63 @@ const ORDER = () => {
 
         <div className="button-group">
           <button type="submit" className="btn-primary">
-            {editingOrder ? 'Update' : 'Create'} Order
+            {editingOrder ? '儲存變更' : '建立空訂單'}
           </button>
           {editingOrder && (
             <button type="button" onClick={() => setEditingOrder(null)} className="btn-secondary">
-              Cancel
+              取消
             </button>
           )}
         </div>
       </form>
 
-      {/* Orders List */}
-      <h2>Order List</h2>
-      {loading ? <p>Loading...</p> : (
+      {/* 訂單列表 */}
+      <h2>訂單列表</h2>
+      {loading ? <p>載入中...</p> : (
         <table className="item-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Seat</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Note</th>
-              <th>Actions</th>
+              <th>座位</th>
+              <th>總金額</th>
+              <th>日期</th>
+              <th>備註</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>
-            {orders.map(order => (
-              <tr key={order.ORDER_ID}>
-                <td>{order.ORDER_ID}</td>
-                <td><span className="type-badge">Seat {order.SEAT_ID}</span></td>
-                <td><strong>${order.ORDER_MOUNT}</strong></td>
-                <td style={{ fontSize: '0.85em' }}>{new Date(order.ORDER_DATE).toLocaleString()}</td>
-                <td className="description-cell">{order.NOTE}</td>
-                <td>
-                  <button onClick={() => setEditingOrder(order)} className="btn-primary" style={{ padding: '4px 8px' }}>
-                    Edit
-                  </button>
-                  <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {orders.map(order => {
+              const seatObj = seats.find(s => s.SEAT_ID === order.SEAT_ID);
+              return (
+                <tr key={order.ORDER_ID}>
+                  <td>{order.ORDER_ID}</td>
+                  <td>
+                    <span className="type-badge">
+                      {seatObj ? seatObj.SEAT_NAME : `ID: ${order.SEAT_ID}`}
+                    </span>
+                  </td>
+                  <td><strong style={{ color: '#007bff' }}>${Number(order.ORDER_MOUNT).toFixed(2)}</strong></td>
+                  <td style={{ fontSize: '0.85em' }}>{new Date(order.ORDER_DATE).toLocaleString()}</td>
+                  <td className="description-cell">{order.NOTE || '-'}</td>
+                  <td>
+                    {/* 跳轉到明細頁面 */}
+                    <Link to={`/ORDER/${order.ORDER_ID}`}>
+                      <button className="btn-primary" style={{ padding: '4px 12px' }}>
+                        明細
+                      </button>
+                    </Link>
+                    
+                    <button onClick={() => setEditingOrder(order)} className="btn-secondary" style={{ padding: '4px 8px', marginLeft: '5px' }}>
+                      備註
+                    </button>
+                    
+                    <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px' }}>
+                      刪除
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
