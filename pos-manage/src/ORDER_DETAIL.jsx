@@ -211,9 +211,6 @@ const ORDER_DETAIL = ({ API_BASE }) => {
                     </button>
                   )}
                 </td>
-                <td>
-                  <button onClick={() => deleteDetail(d.DETAIL_ID)} className="btn-delete">移除</button>
-                </td>
               </tr>
             )) : (
               <tr><td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#999' }}>目前無明細</td></tr>
