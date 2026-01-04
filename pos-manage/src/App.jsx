@@ -7,7 +7,7 @@ import ORDER from './ORDER.jsx'
 import ORDER_DETAIL from './ORDER_DETAIL.jsx'
 import REVENUE from './REVENUE.jsx'
 import AUDIT from './AUDIT.jsx'
-const API_BASE = '/api';
+const API_BASE = 'https://posserver-git-main-ys-chens-projects.vercel.app';
 
 function App() {
   return (
