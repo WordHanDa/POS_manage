@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // 匯入 Link 以便跳轉
+import { Link } from 'react-router-dom';
 import './Management.css';
 
 const ORDER = ({ API_BASE }) => {
   const [orders, setOrders] = useState([]);
   const [seats, setSeats] = useState([]);
-  const [newOrder, setNewOrder] = useState({ seatId: '', mount: 0, note: '' }); // 金額預設為 0
+  const [newOrder, setNewOrder] = useState({ seatId: '', mount: 0, note: '' });
   const [editingOrder, setEditingOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // 計算全店未結清總數 (顯示於統計區)
   const unSettleCount = orders.filter(o => o.settle !== 1).length;
 
   // 1. 取得所有訂單
@@ -27,7 +28,7 @@ const ORDER = ({ API_BASE }) => {
     }
   };
 
-  // 2. 取得所有座位
+  // 2. 取得座位即時狀態 (包含未結清筆數與金額)
   const fetchSeats = async () => {
     try {
       const response = await fetch(`${API_BASE}/SEAT_STATUS`);
@@ -39,7 +40,13 @@ const ORDER = ({ API_BASE }) => {
     }
   };
 
-  // 3. 提交表單 (手動新增/編輯)
+  // 核心邏輯：執行任何變動後，同時更新兩個資料來源
+  const refreshData = () => {
+    fetchOrders();
+    fetchSeats();
+  };
+
+  // 3. 提交表單 (新增訂單或修改備註)
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isEditing = !!editingOrder;
@@ -66,12 +73,13 @@ const ORDER = ({ API_BASE }) => {
 
       setNewOrder({ seatId: '', mount: 0, note: '' });
       setEditingOrder(null);
-      fetchOrders();
+      refreshData(); // 成功後立即同步更新
     } catch (err) {
       setError(err.message);
     }
   };
 
+  // 4. 結清訂單功能 (含頁面確認)
   const settleOrder = async (id) => {
     if (!window.confirm('確定要結清此訂單嗎？結清後將無法更改內容。')) return;
 
@@ -83,48 +91,48 @@ const ORDER = ({ API_BASE }) => {
       if (!response.ok) throw new Error('Settle failed');
 
       alert('訂單已結清！');
-      fetchOrders(); // 重新整理列表
+      refreshData(); // 成功後立即同步更新
     } catch (err) {
       setError(err.message);
     }
   };
 
+  // 5. 刪除訂單
   const deleteOrder = async (id) => {
-    if (!window.confirm('確定要刪除此訂單嗎？（警告：請確保已手動刪除相關明細）')) return;
+    if (!window.confirm('確定要刪除此訂單嗎？')) return;
     try {
       const response = await fetch(`${API_BASE}/ORDER/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Delete failed');
-      fetchOrders();
+      refreshData(); // 成功後立即同步更新
     } catch (err) {
       setError(err.message);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
-    fetchSeats();
+    refreshData();
   }, []);
 
   return (
     <div className="container">
       <h1>訂單管理 (ORDER)</h1>
 
-      <div style={{ marginBottom: '20px', padding: '10px', border: '1px solid #ffe58f', borderRadius: '4px' }}>
-        <strong>當前統計：</strong>
-        目前共有 <span style={{ color: '#f5222d', fontSize: '1.2em' }}>{unSettleCount}</span> 筆訂單尚未結清。
+      {/* 統計摘要 */}
+      <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '8px' }}>
+        <strong>📢 即時統計：</strong>
+        目前店內有 <span style={{ color: '#f5222d', fontSize: '1.2em', fontWeight: 'bold' }}>{unSettleCount}</span> 筆訂單尚未結清。
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
 
       {/* 新增/編輯 表單 */}
       <form onSubmit={handleSubmit} className="item-form">
-        <h2>{editingOrder ? '編輯訂單備註' : '快速建立訂單'}</h2>
-
+        <h2>{editingOrder ? '編輯訂單備註' : '快速建立新訂單'}</h2>
 
         <div className="form-group">
-          <label>選擇座位:</label>
+          <label>選擇座位 (即時桌況):</label>
           <select
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
             value={editingOrder ? editingOrder.SEAT_ID : newOrder.seatId}
             onChange={(e) => editingOrder
               ? setEditingOrder({ ...editingOrder, SEAT_ID: e.target.value })
@@ -134,9 +142,9 @@ const ORDER = ({ API_BASE }) => {
           >
             <option value="">-- 請選擇座位 --</option>
             {seats.map(seat => {
-              // 根據 active_orders 判斷顯示文字
               const count = seat.active_orders || 0;
-              const statusText = count > 0 ? `(已有 ${count} 筆未結清) $${seat.current_total}` : '(空閒)';
+              const amount = Number(seat.current_total || 0).toFixed(0);
+              const statusText = count > 0 ? `(已有 ${count} 筆未結) $${amount}` : '(空閒)';
 
               return (
                 <option key={seat.SEAT_ID} value={seat.SEAT_ID}>
@@ -156,6 +164,7 @@ const ORDER = ({ API_BASE }) => {
                 ? setEditingOrder({ ...editingOrder, NOTE: e.target.value })
                 : setNewOrder({ ...newOrder, note: e.target.value })
               }
+              placeholder="輸入備註（如：少鹽、加辣...）"
             />
           </div>
         </div>
@@ -172,8 +181,8 @@ const ORDER = ({ API_BASE }) => {
         </div>
       </form>
 
-      {/* 訂單列表 */}
-      <h2>訂單列表</h2>
+      {/* 訂單清單表格 */}
+      <h2 style={{ marginTop: '30px' }}>訂單清單</h2>
       {loading ? <p>載入中...</p> : (
         <table className="item-table">
           <thead>
@@ -190,10 +199,10 @@ const ORDER = ({ API_BASE }) => {
           <tbody>
             {orders.map(order => {
               const seatObj = seats.find(s => s.SEAT_ID === order.SEAT_ID);
-              const isSettled = order.settle === 1; // 判斷是否已結清
+              const isSettled = order.settle === 1;
 
               return (
-                <tr key={order.ORDER_ID}>
+                <tr key={order.ORDER_ID} style={{ backgroundColor: isSettled ? '#f5f5f5' : 'white' }}>
                   <td>{order.ORDER_ID}</td>
                   <td>
                     <span className="type-badge">
@@ -202,12 +211,10 @@ const ORDER = ({ API_BASE }) => {
                   </td>
                   <td>
                     {isSettled ? (
-                      /* 優先判斷：如果已結清，只顯示已結清標籤 */
                       <span className="type-badge" style={{ backgroundColor: '#8c8c8c', color: 'white' }}>
                         已結清
                       </span>
                     ) : (
-                      /* 若未結清，顯示原本的製作/出單狀態 */
                       <span className="type-badge" style={{
                         backgroundColor: order.SEND === 1 ? '#52c41a' : '#f5222d',
                         color: 'white'
@@ -221,21 +228,15 @@ const ORDER = ({ API_BASE }) => {
                   <td className="description-cell">{order.NOTE || '-'}</td>
                   <td>
                     <Link to={`/ORDER/${order.ORDER_ID}`}>
-                      <button className="btn-primary" style={{ padding: '4px 12px' }}>
-                        明細
-                      </button>
+                      <button className="btn-primary" style={{ padding: '4px 12px' }}>明細</button>
                     </Link>
 
-                    {/* 如果未結清，顯示修改與結清按鈕 */}
                     {!isSettled && (
                       <>
-                        <button onClick={() => setEditingOrder(order)} className="btn-secondary" style={{ padding: '4px 8px', marginLeft: '5px' }}>
-                          修改
-                        </button>
-
-                        <button
-                          onClick={() => settleOrder(order.ORDER_ID)}
-                          className="btn-primary"
+                        <button onClick={() => setEditingOrder(order)} className="btn-secondary" style={{ padding: '4px 8px', marginLeft: '5px' }}>修改</button>
+                        <button 
+                          onClick={() => settleOrder(order.ORDER_ID)} 
+                          className="btn-primary" 
                           style={{ padding: '4px 8px', marginLeft: '5px', backgroundColor: '#faad14', borderColor: '#faad14' }}
                         >
                           結清
@@ -243,14 +244,9 @@ const ORDER = ({ API_BASE }) => {
                       </>
                     )}
 
-                    {order.SEND === 1 ? (
-                      null
-                    ) : (
-                      <button
-                        onClick={() => deleteOrder(order.ORDER_ID)}
-                        className="btn-delete"
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px', color: 'red' }}
-                      >
+                    {/* 未結清且未完成出單才顯示刪除 */}
+                    {!isSettled && order.SEND !== 1 && (
+                      <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px', color: 'red' }}>
                         刪除
                       </button>
                     )}
