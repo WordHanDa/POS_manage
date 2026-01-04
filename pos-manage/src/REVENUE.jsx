@@ -68,7 +68,7 @@ const REVENUE = ({ API_BASE }) => {
         <h1>出菜清單 (UTC+8)</h1>
       </header>
 
-      <div className="item-form" style={{ marginBottom: '20px', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+      <div className="item-form" style={{ marginBottom: '20px', padding: '20px', borderRadius: '8px' }}>
         <label style={{ fontWeight: 'bold', marginRight: '10px' }}>選擇日期：</label>
         <input 
           type="date" 
