@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import './Management.css';
 
-const ORDER_DETAIL = () => {
+const ORDER_DETAIL = ({ API_BASE }) => {
   const { orderId } = useParams();
   const [details, setDetails] = useState([]);
   const [items, setItems] = useState([]);
@@ -13,8 +13,6 @@ const ORDER_DETAIL = () => {
   const [newDetail, setNewDetail] = useState({ itemId: '', quantity: 1, discount: 100 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const API_BASE = 'http://localhost:3002';
 
   const fetchDetails = async () => {
     setLoading(true);
