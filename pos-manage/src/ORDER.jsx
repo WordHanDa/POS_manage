@@ -230,7 +230,7 @@ const ORDER = ({ API_BASE }) => {
                       </>
                     )}
 
-                    {order.settle === 1 ? (
+                    {order.SEND === 1 ? (
                       null
                     ) : (
                       <button
