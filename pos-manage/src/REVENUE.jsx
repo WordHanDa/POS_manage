@@ -32,16 +32,25 @@ const REVENUE = ({ API_BASE }) => {
   };
 
   // 格式化經過時間的邏輯
+  // 修改 formatElapsedTime 函式
   const formatElapsedTime = (orderTime) => {
-    const diffInSeconds = Math.floor((now - new Date(orderTime)) / 1000);
-    if (diffInSeconds < 0) return "0秒";
-    
+    // 將回傳的 ISO 字串轉換為 Date 物件
+    const orderDate = new Date(orderTime);
+
+    // 計算差異（毫秒）
+    const diffInMs = now.getTime() - orderDate.getTime();
+    const diffInSeconds = Math.floor(diffInMs / 1000);
+
+    // 偵錯用：如果還是 0 秒，可以在此 console.log 檢查
+    // console.log('Current Now:', now.toISOString(), 'Order Date:', orderDate.toISOString());
+
+    if (diffInSeconds <= 0) return "1秒內"; // 處理毫秒差或剛下單的情況
+
     if (diffInSeconds < 60) {
       return `${diffInSeconds}秒`;
     } else {
       const mins = Math.floor(diffInSeconds / 60);
       const secs = diffInSeconds % 60;
-      // 補零邏輯，例如 01:05
       return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
   };
@@ -77,7 +86,9 @@ const REVENUE = ({ API_BASE }) => {
 
   // 每 1 秒更新一次本地時間（驅動秒數顯示）
   useEffect(() => {
-    const timerInterval = setInterval(() => setNow(new Date()), 1000);
+    const timerInterval = setInterval(() => {
+      setNow(new Date()); // 每秒更新一次當前時間
+    }, 1000);
     return () => clearInterval(timerInterval);
   }, []);
 
@@ -89,10 +100,10 @@ const REVENUE = ({ API_BASE }) => {
 
       <div className="item-form" style={{ marginBottom: '20px', padding: '20px', borderRadius: '8px' }}>
         <label style={{ fontWeight: 'bold', marginRight: '10px' }}>選擇日期：</label>
-        <input 
-          type="date" 
-          value={selectedDate} 
-          onChange={(e) => setSelectedDate(e.target.value)} 
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
           style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
         />
         <span style={{ marginLeft: '20px' }}>
@@ -128,8 +139,8 @@ const REVENUE = ({ API_BASE }) => {
                   <tr
                     key={item.DETAIL_ID}
                     style={{
-                      borderLeft: item.ITEM_SEND === 0 
-                        ? `6px solid ${isUrgent ? '#f5222d' : '#52c41a'}` 
+                      borderLeft: item.ITEM_SEND === 0
+                        ? `6px solid ${isUrgent ? '#f5222d' : '#52c41a'}`
                         : '6px solid #d9d9d9',
                       backgroundColor: isUrgent ? '#fff1f0' : 'transparent' // 緊急時底色淡紅
                     }}
@@ -138,8 +149,8 @@ const REVENUE = ({ API_BASE }) => {
                       <div style={{ fontWeight: 'bold', color: isUrgent ? '#f5222d' : '' }}>
                         {item.ITEM_SEND === 0 ? `P${index + 1}` : 'DONE'}
                       </div>
-                      <div style={{ 
-                        fontSize: '0.9em', 
+                      <div style={{
+                        fontSize: '0.9em',
                         color: isUrgent ? '#f5222d' : '#1890ff',
                         fontWeight: item.ITEM_SEND === 0 ? 'bold' : 'normal'
                       }}>
