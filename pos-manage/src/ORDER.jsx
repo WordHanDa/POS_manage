@@ -133,11 +133,17 @@ const ORDER = ({ API_BASE }) => {
             required
           >
             <option value="">-- 請選擇座位 --</option>
-            {seats.map(seat => (
-              <option key={seat.SEAT_ID} value={seat.SEAT_ID}>
-                {seat.SEAT_NAME}
-              </option>
-            ))}
+            {seats.map(seat => {
+              // 根據 active_orders 判斷顯示文字
+              const count = seat.active_orders || 0;
+              const statusText = count > 0 ? `(已有 ${count} 筆未結清)` : '(空閒)';
+
+              return (
+                <option key={seat.SEAT_ID} value={seat.SEAT_ID}>
+                  {seat.SEAT_NAME} {statusText}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -165,29 +171,6 @@ const ORDER = ({ API_BASE }) => {
           )}
         </div>
       </form>
-
-      <select
-        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-        value={editingOrder ? editingOrder.SEAT_ID : newOrder.seatId}
-        onChange={(e) => editingOrder
-          ? setEditingOrder({ ...editingOrder, SEAT_ID: e.target.value })
-          : setNewOrder({ ...newOrder, seatId: e.target.value })
-        }
-        required
-      >
-        <option value="">-- 請選擇座位 --</option>
-        {seats.map(seat => {
-          // 根據 active_orders 判斷顯示文字
-          const count = seat.active_orders || 0;
-          const statusText = count > 0 ? `(已有 ${count} 筆未結清)` : '(空閒)';
-
-          return (
-            <option key={seat.SEAT_ID} value={seat.SEAT_ID}>
-              {seat.SEAT_NAME} {statusText}
-            </option>
-          );
-        })}
-      </select>
 
       {/* 訂單列表 */}
       <h2>訂單列表</h2>
