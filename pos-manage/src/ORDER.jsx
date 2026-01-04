@@ -191,6 +191,10 @@ const ORDER = ({API_BASE}) => {
                     <button onClick={() => setEditingOrder(order)} className="btn-secondary" style={{ padding: '4px 8px', marginLeft: '5px' }}>
                       修改備註
                     </button>
+                    
+                    <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px' }}>
+                      刪除
+                    </button>
                   </td>
                 </tr>
               );
