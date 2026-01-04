@@ -1,0 +1,101 @@
+.container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.item-form {
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input, 
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box; /* 確保寬度包含 padding */
+}
+
+.description-area {
+  margin-top: 10px;
+}
+
+.description-area textarea {
+  height: 60px;
+}
+
+.button-group {
+  margin-top: 10px;
+}
+
+.btn-primary {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  margin-left: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+/* 表格樣式 */
+.item-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.item-table th {
+  border-bottom: 2px solid #ccc;
+  text-align: left;
+  padding: 10px 5px;
+}
+
+.item-table tr {
+  border-bottom: 1px solid #eee;
+}
+
+.item-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+}
+
+.type-badge {
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.description-cell {
+  max-width: 200px;
+  font-size: 0.9em;
+  word-break: break-all;
+}
+
+.btn-delete {
+  margin-left: 10px;
+  color: red;
+}
