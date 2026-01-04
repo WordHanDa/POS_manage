@@ -136,7 +136,7 @@
 }
 
 .price-cell {
-
+  font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
   text-align: right;
 }
@@ -176,12 +176,6 @@
   text-decoration: underline;
   cursor: pointer;
   font-size: 0.85rem;
-}
-
-.price-cell {
-  font-family: 'Roboto Mono', monospace;
-  text-align: right;
-  color: #2d3748;
 }
 
 /* 展開區塊容器 */
