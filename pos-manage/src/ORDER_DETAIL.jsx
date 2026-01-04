@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Management.css';
 
-const AUDIT = (API_BASE) => {
+const AUDIT = ({API_BASE}) => {
   const [orders, setOrders] = useState([]);
   const [expandedOrder, setExpandedOrder] = useState(null); // 儲存目前展開的訂單 ID
   const [orderDetails, setOrderDetails] = useState([]);    // 儲存明細資料
