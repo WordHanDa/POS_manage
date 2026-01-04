@@ -180,7 +180,7 @@ const ORDER = ({ API_BASE }) => {
               const isSettled = order.settle === 1; // 判斷是否已結清
 
               return (
-                <tr key={order.ORDER_ID} style={{ backgroundColor: isSettled ? '#f9f9f9' : 'white' }}>
+                <tr key={order.ORDER_ID}>
                   <td>{order.ORDER_ID}</td>
                   <td>
                     <span className="type-badge">
@@ -198,7 +198,7 @@ const ORDER = ({ API_BASE }) => {
                     </span>
                     {/* 顯示結帳狀態 */}
                     {isSettled && (
-                      <span className="type-badge" style={{ backgroundColor: '#8c8c8c', color: 'white' }}>
+                      <span className="type-badge">
                         已結清
                       </span>
                     )}
