@@ -7,7 +7,7 @@ import ORDER from './ORDER.jsx'
 import ORDER_DETAIL from './ORDER_DETAIL.jsx'
 import REVENUE from './REVENUE.jsx'
 import AUDIT from './AUDIT.jsx'
-const API_BASE = import.meta.env.VITE_IP_ADDR || 'http://114.32.141.80:3002';
+const API_BASE = import.meta.env.VITE_IP_ADDR || '/api';
 
 function App() {
   return (
