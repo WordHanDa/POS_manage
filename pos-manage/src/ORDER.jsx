@@ -115,8 +115,8 @@ const ORDER = ({ API_BASE }) => {
       <h1>訂單管理 (ORDER)</h1>
 
       {/* 頂部統計區 */}
-      <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '8px' }}>
-        <strong>📊 營運概況：</strong>
+      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ffe58f', borderRadius: '8px' }}>
+        <strong>營運概況：</strong>
         目前全店共有 <span style={{ color: '#f5222d', fontSize: '1.2em', fontWeight: 'bold' }}>{unSettleCount}</span> 筆訂單尚未結清。
       </div>
 
