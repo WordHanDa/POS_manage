@@ -30,7 +30,7 @@ const ORDER = ({ API_BASE }) => {
   // 2. 取得所有座位
   const fetchSeats = async () => {
     try {
-      const response = await fetch(`${API_BASE}/SEAT`);
+      const response = await fetch(`${API_BASE}/SEAT_STATUS`);
       if (!response.ok) throw new Error('Failed to fetch seats');
       const data = await response.json();
       setSeats(data);
