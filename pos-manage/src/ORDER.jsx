@@ -10,6 +10,8 @@ const ORDER = ({ API_BASE }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const unSettleCount = orders.filter(o => o.settle !== 1).length;
+
   // 1. 取得所有訂單
   const fetchOrders = async () => {
     setLoading(true);
@@ -107,6 +109,11 @@ const ORDER = ({ API_BASE }) => {
     <div className="container">
       <h1>訂單管理 (ORDER)</h1>
 
+      <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '4px' }}>
+        <strong>📢 當前統計：</strong>
+        目前共有 <span style={{ color: '#f5222d', fontSize: '1.2em' }}>{unSettleCount}</span> 筆訂單尚未結清。
+      </div>
+
       {error && <div className="error-message">{error}</div>}
 
       {/* 新增/編輯 表單 */}
@@ -181,7 +188,7 @@ const ORDER = ({ API_BASE }) => {
           );
         })}
       </select>
-      
+
       {/* 訂單列表 */}
       <h2>訂單列表</h2>
       {loading ? <p>載入中...</p> : (
