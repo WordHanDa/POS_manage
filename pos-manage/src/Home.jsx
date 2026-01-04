@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Management.css';
 
-const Home = () => {
+const Home = ({API_BASE}) => {
   const [summary, setSummary] = useState({ revenue: 0, pending: 0, totalOrders: 0 });
-  const API_BASE = 'http://localhost:3002';
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {

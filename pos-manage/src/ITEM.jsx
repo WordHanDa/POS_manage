@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Management.css';
 
-const ITEM = () => {
+const ITEM = ({API_BASE}) => {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState({ name: '', price: '', description: '', pictureUrl: '', type: '' });
   const [editingItem, setEditingItem] = useState(null);
@@ -11,8 +11,6 @@ const ITEM = () => {
   // --- 新增：排序狀態 ---
   // key: 排序的欄位名稱, direction: 'asc' (升序) 或 'desc' (降序)
   const [sortConfig, setSortConfig] = useState({ key: 'ITEM_ID', direction: 'asc' });
-
-  const API_BASE = 'http://localhost:3002';
 
   const fetchItems = async () => {
     setLoading(true);
@@ -144,17 +142,17 @@ const ITEM = () => {
 
   return (
     <div className="container">
-      <h1>ITEM Management</h1>
+      <h1>品項管理</h1>
       
       {error && <div className="error-message">{error}</div>}
       
       {/* Add/Edit Form */}
       <form onSubmit={handleSubmit} className="item-form">
-        <h2>{editingItem ? 'Edit Item' : 'Add New Item'}</h2>
+        <h2>{editingItem ? '編輯品項' : '新增品項'}</h2>
         
         <div className="form-grid">
           <div className="form-group">
-            <label>Name: </label>
+            <label>名稱: </label>
             <input
               type="text"
               value={(editingItem ? editingItem.ITEM_NAME : newItem.name || '')}
@@ -166,7 +164,7 @@ const ITEM = () => {
             />
           </div>
           <div className="form-group">
-            <label>Price: </label>
+            <label>價格: </label>
             <input
               type="number"
               step="0.01"
@@ -179,10 +177,10 @@ const ITEM = () => {
             />
           </div>
           <div className="form-group">
-            <label>Type: </label>
+            <label>種類: </label>
             <input
               type="text"
-              placeholder="e.g. Electronics, Food"
+              placeholder="例如：飲料、食物"
               value={(editingItem ? editingItem.Type : newItem.type) || ''}
               onChange={(e) => editingItem 
                 ? setEditingItem({ ...editingItem, Type: e.target.value })
@@ -191,7 +189,7 @@ const ITEM = () => {
             />
           </div>
           <div className="form-group">
-            <label>Picture URL: </label>
+            <label>圖片連結: </label>
             <input
               type="text"
               placeholder="http://..."
@@ -205,7 +203,8 @@ const ITEM = () => {
         </div>
 
         <div className="description-area">
-          <label>Description: </label>
+          <div className="form-group">
+          <label>描述: </label>
           <textarea
             value={(editingItem ? editingItem.Description : newItem.description) || ''}
             onChange={(e) => editingItem 
@@ -213,23 +212,24 @@ const ITEM = () => {
               : setNewItem({ ...newItem, description: e.target.value })
             }
           />
+          </div>
         </div>
 
         <div className="button-group">
           <button type="submit" className="btn-primary">
-            {editingItem ? 'Update' : 'Add'} Item
+            {editingItem ? '更新' : '加入'}品項
           </button>
           {editingItem && (
             <button type="button" onClick={cancelEdit} className="btn-secondary">
-              Cancel
+              取消
             </button>
           )}
         </div>
       </form>
 
       {/* Items List */}
-      <h2>Items List</h2>
-      {loading ? <p>Loading...</p> : (
+      <h2>品項清單</h2>
+      {loading ? <p>載入中...</p> : (
         <table className="item-table">
           <thead>
             <tr>
@@ -237,18 +237,18 @@ const ITEM = () => {
               <th onClick={() => requestSort('ITEM_ID')} style={{ cursor: 'pointer' }}>
                 ID {getSortIcon('ITEM_ID')}
               </th>
-              <th>Image</th>
+              <th>圖片</th>
               <th onClick={() => requestSort('ITEM_NAME')} style={{ cursor: 'pointer' }}>
-                Name {getSortIcon('ITEM_NAME')}
+                名稱 {getSortIcon('ITEM_NAME')}
               </th>
               <th onClick={() => requestSort('Type')} style={{ cursor: 'pointer' }}>
-                Type {getSortIcon('Type')}
+                類型 {getSortIcon('Type')}
               </th>
               <th onClick={() => requestSort('ITEM_PRICE')} style={{ cursor: 'pointer' }}>
-                Price {getSortIcon('ITEM_PRICE')}
+                價格 {getSortIcon('ITEM_PRICE')}
               </th>
-              <th>Description</th>
-              <th>Actions</th>
+              <th>描述</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>
@@ -265,8 +265,8 @@ const ITEM = () => {
                 <td>${item.ITEM_PRICE}</td>
                 <td className="description-cell">{item.Description}</td>
                 <td>
-                  <button onClick={() => handleEdit(item)}>Edit</button>
-                  <button onClick={() => deleteItem(item.ITEM_ID)} className="btn-delete">Delete</button>
+                  <button onClick={() => handleEdit(item)}>編輯</button>
+                  <button onClick={() => deleteItem(item.ITEM_ID)} className="btn-delete">刪除</button>
                 </td>
               </tr>
             ))}

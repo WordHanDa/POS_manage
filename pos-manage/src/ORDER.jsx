@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // 匯入 Link 以便跳轉
 import './Management.css';
 
-const ORDER = () => {
+const ORDER = ({API_BASE}) => {
   const [orders, setOrders] = useState([]);
   const [seats, setSeats] = useState([]);
   const [newOrder, setNewOrder] = useState({ seatId: '', mount: 0, note: '' }); // 金額預設為 0
   const [editingOrder, setEditingOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const API_BASE = 'http://localhost:3002';
 
   // 1. 取得所有訂單
   const fetchOrders = async () => {

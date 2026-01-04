@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './Management.css'; 
 
-const SEAT = () => {
+const SEAT = ({API_BASE}) => {
   const [seats, setSeats] = useState([]);
   const [newSeat, setNewSeat] = useState({ seatName: '' });
   const [editingSeat, setEditingSeat] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const API_BASE = 'http://localhost:3002';
 
   const fetchSeats = async () => {
     setLoading(true);

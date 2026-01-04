@@ -6,6 +6,8 @@ import SEAT from './SEAT.jsx'
 import ORDER from './ORDER.jsx'
 import ORDER_DETAIL from './ORDER_DETAIL.jsx'
 import REVENUE from './REVENUE.jsx'
+import AUDIT from './AUDIT.jsx'
+const API_BASE='http://localhost:3002';
 
 function App() {
   return (
@@ -30,17 +32,19 @@ function App() {
           <Link to="/SEAT" style={{ color: '#ccc', textDecoration: 'none' }}>座位管理</Link>
           <Link to="/ORDER" style={{ color: '#ccc', textDecoration: 'none' }}>訂單管理</Link>
           <Link to="/REVENUE" style={{ color: '#ccc', textDecoration: 'none' }}>出餐順序</Link>
+          <Link to="/AUDIT" style={{ color: '#ccc', textDecoration: 'none' }}>營業報表</Link>
         </nav>
 
         {/* 內容區塊 */}
         <div style={{ paddingTop: '70px' }}> 
           <Routes>
-            <Route path="/" element={<HOME />} />
-            <Route path="/ITEM" element={<ITEM />} />
-            <Route path="/SEAT" element={<SEAT />} />
-            <Route path="/ORDER" element={<ORDER />} />
-            <Route path="/REVENUE" element={<REVENUE />} />
-            <Route path="/ORDER/:orderId" element={<ORDER_DETAIL />} />
+            <Route path="/" element={<HOME API_BASE={API_BASE} />} />
+            <Route path="/ITEM" element={<ITEM API_BASE={API_BASE} />} />
+            <Route path="/SEAT" element={<SEAT API_BASE={API_BASE} />} />
+            <Route path="/ORDER" element={<ORDER API_BASE={API_BASE} />} />
+            <Route path="/REVENUE" element={<REVENUE API_BASE={API_BASE} />} />
+            <Route path="/ORDER/:orderId" element={<ORDER_DETAIL API_BASE={API_BASE} />} />
+            <Route path="/AUDIT" element={<AUDIT API_BASE={API_BASE} />} />
           </Routes>
         </div>
       </div>

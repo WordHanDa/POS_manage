@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './Management.css';
 
-const REVENUE = () => {
+const REVENUE = ({API_BASE}) => {
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const [orderDetails, setOrderDetails] = useState([]);
   const [loading, setLoading] = useState(false);
-  const API_BASE = 'http://localhost:3002';
 
   const fetchRevenueDetails = async (date) => {
     setLoading(true);
