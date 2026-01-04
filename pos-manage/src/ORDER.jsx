@@ -119,7 +119,7 @@ const ORDER = ({ API_BASE }) => {
 
       {/* 統計摘要 */}
       <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ffe58f', borderRadius: '8px' }}>
-        <strong>📢 即時統計：</strong>
+        <strong>即時統計：</strong>
         目前店內有 <span style={{ color: '#f5222d', fontSize: '1.2em', fontWeight: 'bold' }}>{unSettleCount}</span> 筆訂單尚未結清。
       </div>
 
