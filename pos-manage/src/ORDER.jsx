@@ -137,8 +137,6 @@ const ORDER = ({ API_BASE }) => {
                 textAlign: 'center',
                 borderRadius: '6px',
                 cursor: editingOrder ? 'not-allowed' : 'pointer',
-                border: isSelected ? '2px solid #1890ff' : '1px solid #d9d9d9',
-                backgroundColor: count > 0 ? '#fff1f0' : '#f6ffed',
                 opacity: editingOrder && !isSelected ? 0.5 : 1
               }}
             >
@@ -201,7 +199,7 @@ const ORDER = ({ API_BASE }) => {
               const isSettled = order.settle === 1;
 
               return (
-                <tr key={order.ORDER_ID} style={{ backgroundColor: isSettled ? '#f5f5f5' : 'white' }}>
+                <tr key={order.ORDER_ID}>
                   <td>{order.ORDER_ID}</td>
                   <td><span className="type-badge">{seatObj ? seatObj.SEAT_NAME : order.SEAT_ID}</span></td>
                   <td>
