@@ -136,7 +136,7 @@ const ORDER = ({ API_BASE }) => {
             {seats.map(seat => {
               // 根據 active_orders 判斷顯示文字
               const count = seat.active_orders || 0;
-              const statusText = count > 0 ? `(已有 ${count} 筆未結清)` : '(空閒)';
+              const statusText = count > 0 ? `(已有 ${count} 筆未結清) $${seat.current_total}` : '(空閒)';
 
               return (
                 <option key={seat.SEAT_ID} value={seat.SEAT_ID}>
