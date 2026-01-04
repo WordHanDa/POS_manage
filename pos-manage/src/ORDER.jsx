@@ -98,7 +98,7 @@ const ORDER = () => {
       <form onSubmit={handleSubmit} className="item-form">
         <h2>{editingOrder ? '編輯訂單備註' : '快速建立訂單'}</h2>
         
-        <div className="form-grid">
+
           <div className="form-group">
             <label>選擇座位:</label>
             <select
@@ -118,10 +118,10 @@ const ORDER = () => {
               ))}
             </select>
           </div>
-        </div>
 
         <div className="description-area" style={{ marginTop: '15px' }}>
-          <label>備註 (NOTE):</label>
+          <div className="form-group">
+          <label>備註:</label>
           <textarea
             value={editingOrder ? editingOrder.NOTE : newOrder.note}
             onChange={(e) => editingOrder 
@@ -129,6 +129,7 @@ const ORDER = () => {
               : setNewOrder({ ...newOrder, note: e.target.value })
             }
           />
+          </div>
         </div>
 
         <div className="button-group">
@@ -151,6 +152,7 @@ const ORDER = () => {
             <tr>
               <th>ID</th>
               <th>座位</th>
+              <th>狀態</th>
               <th>總金額</th>
               <th>日期</th>
               <th>備註</th>
@@ -168,6 +170,15 @@ const ORDER = () => {
                       {seatObj ? seatObj.SEAT_NAME : `ID: ${order.SEAT_ID}`}
                     </span>
                   </td>
+                  <td>
+                  {/* 根據後端傳回的 SEND 欄位顯示狀態 */}
+                  <span className="type-badge" style={{ 
+                    backgroundColor: order.SEND === 1 ? '#52c41a' : '#f5222d', 
+                    color: 'white' 
+                  }}>
+                    {order.SEND === 1 ? '全部完成' : '製作中'}
+                  </span>
+                </td>
                   <td><strong style={{ color: '#007bff' }}>${Number(order.ORDER_MOUNT).toFixed(2)}</strong></td>
                   <td style={{ fontSize: '0.85em' }}>{new Date(order.ORDER_DATE).toLocaleString()}</td>
                   <td className="description-cell">{order.NOTE || '-'}</td>
@@ -180,7 +191,7 @@ const ORDER = () => {
                     </Link>
                     
                     <button onClick={() => setEditingOrder(order)} className="btn-secondary" style={{ padding: '4px 8px', marginLeft: '5px' }}>
-                      備註
+                      修改備註
                     </button>
                     
                     <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px' }}>

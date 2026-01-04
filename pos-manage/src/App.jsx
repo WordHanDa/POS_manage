@@ -4,7 +4,8 @@ import HOME from './Home.jsx'
 import ITEM from './ITEM.jsx'
 import SEAT from './SEAT.jsx'
 import ORDER from './ORDER.jsx'
-import ORDER_DETAIL from './ORDER_DETAIL.jsx' // 1. 確保有匯入明細組件
+import ORDER_DETAIL from './ORDER_DETAIL.jsx'
+import REVENUE from './REVENUE.jsx'
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Link to="/ITEM" style={{ color: '#ccc', textDecoration: 'none' }}>品項管理</Link>
           <Link to="/SEAT" style={{ color: '#ccc', textDecoration: 'none' }}>座位管理</Link>
           <Link to="/ORDER" style={{ color: '#ccc', textDecoration: 'none' }}>訂單管理</Link>
+          <Link to="/REVENUE" style={{ color: '#ccc', textDecoration: 'none' }}>出餐順序</Link>
         </nav>
 
         {/* 內容區塊 */}
@@ -37,8 +39,7 @@ function App() {
             <Route path="/ITEM" element={<ITEM />} />
             <Route path="/SEAT" element={<SEAT />} />
             <Route path="/ORDER" element={<ORDER />} />
-            
-            {/* 2. 修正點：加入動態路由參數 :orderId */}
+            <Route path="/REVENUE" element={<REVENUE />} />
             <Route path="/ORDER/:orderId" element={<ORDER_DETAIL />} />
           </Routes>
         </div>

@@ -9,7 +9,7 @@ const ORDER_DETAIL = () => {
   const [filteredItems, setFilteredItems] = useState([]); // 新增：儲存過濾後的品項
   const [types, setTypes] = useState([]); // 新增：儲存所有的 Type 種類
   const [selectedType, setSelectedType] = useState(''); // 新增：目前的過濾類別
-  
+
   const [newDetail, setNewDetail] = useState({ itemId: '', quantity: 1, discount: 100 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -23,10 +23,10 @@ const ORDER_DETAIL = () => {
       if (!response.ok) throw new Error('無法取得訂單明細');
       const data = await response.json();
       setDetails(data);
-    } catch (err) { 
+    } catch (err) {
       setError(err.message);
-    } finally { 
-      setLoading(false); 
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,15 +71,15 @@ const ORDER_DETAIL = () => {
           orderId: parseInt(orderId),
           itemId: selectedItem.ITEM_ID,
           quantity: parseInt(newDetail.quantity),
-          priceAtSale: selectedItem.ITEM_PRICE, 
+          priceAtSale: selectedItem.ITEM_PRICE,
           saleInPercent: parseInt(newDetail.discount)
         })
       });
       if (!response.ok) throw new Error('新增失敗');
       setNewDetail({ itemId: '', quantity: 1, discount: 100 });
       fetchDetails();
-    } catch (err) { 
-      setError(err.message); 
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -101,7 +101,7 @@ const ORDER_DETAIL = () => {
       <Link to="/ORDER" className="btn-secondary" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '20px' }}>
         ← 返回訂單列表
       </Link>
-      
+
       <h1>訂單詳情 # {orderId}</h1>
       {error && <div className="error-message">⚠️ {error}</div>}
 
@@ -111,8 +111,8 @@ const ORDER_DETAIL = () => {
           {/* 新增：Type 過濾選單 */}
           <div className="form-group">
             <label>類別:</label>
-            <select 
-              value={selectedType} 
+            <select
+              value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
             >
               <option value="">-- 顯示全部類別 --</option>
@@ -123,9 +123,9 @@ const ORDER_DETAIL = () => {
           {/* 品項選單 (受過濾影響) */}
           <div className="form-group">
             <label>選擇品項:</label>
-            <select 
-              value={newDetail.itemId} 
-              onChange={(e) => setNewDetail({...newDetail, itemId: e.target.value})}
+            <select
+              value={newDetail.itemId}
+              onChange={(e) => setNewDetail({ ...newDetail, itemId: e.target.value })}
               required
             >
               <option value="">-- 請先選擇類別 --</option>
@@ -139,12 +139,12 @@ const ORDER_DETAIL = () => {
 
           <div className="form-group">
             <label>數量:</label>
-            <input type="number" min="1" value={newDetail.quantity} onChange={(e) => setNewDetail({...newDetail, quantity: e.target.value})} required />
+            <input type="number" min="1" value={newDetail.quantity} onChange={(e) => setNewDetail({ ...newDetail, quantity: e.target.value })} required />
           </div>
-          
+
           <div className="form-group">
             <label>折扣 (%):</label>
-            <input type="number" min="0" max="100" value={newDetail.discount} onChange={(e) => setNewDetail({...newDetail, discount: e.target.value})} />
+            <input type="number" min="0" max="100" value={newDetail.discount} onChange={(e) => setNewDetail({ ...newDetail, discount: e.target.value })} />
           </div>
         </div>
         <button type="submit" className="btn-primary" style={{ marginTop: '10px' }}>新增至訂單</button>
@@ -160,7 +160,7 @@ const ORDER_DETAIL = () => {
               <th>數量</th>
               <th>折扣</th>
               <th>小計</th>
-              <th>操作</th>
+              <th>狀態</th>
             </tr>
           </thead>
           <tbody>
@@ -172,7 +172,45 @@ const ORDER_DETAIL = () => {
                 <td><span className="type-badge">{d.SALE_IN_PERCENT}%</span></td>
                 <td><strong>${(d.PRICE_AT_SALE * d.QUANTITY * (d.SALE_IN_PERCENT / 100)).toFixed(2)}</strong></td>
                 <td>
-                  <button onClick={() => deleteDetail(d.DETAIL_ID)} className="btn-delete" style={{border:'none', background:'none', cursor:'pointer'}}>移除</button>
+                  {/* 合併後的狀態與出單按鈕 */}
+                  <button
+                    className="btn-primary"
+                    disabled={d.SEND === 1} // 如果 SEND 為 1 則禁用按鈕
+                    style={{
+                      backgroundColor: d.SEND === 1 ? '#b7eb8f' : '#faad14', // 已出單顯示淺綠，未出單顯示橘色
+                      borderColor: d.SEND === 1 ? '#b7eb8f' : '#faad14',
+                      cursor: d.SEND === 1 ? 'not-allowed' : 'pointer',
+                      color: d.SEND === 1 ? '#52c41a' : 'white',
+                      width: '100px',
+                      fontWeight: 'bold'
+                    }}
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`${API_BASE}/ORDER_DETAIL/send/${d.DETAIL_ID}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ sendStatus: 1 })
+                        });
+                        if (!response.ok) throw new Error('更新狀態失敗');
+                        fetchDetails(); // 重新整理明細列表以更新主表狀態
+                      } catch (err) {
+                        alert(err.message);
+                      }
+                    }}
+                  >
+                    {d.SEND === 1 ? '已出單' : '點擊出單'}
+                  </button>
+
+                  {/* 只有在尚未出單的情況下才允許移除，避免帳務混亂 */}
+                  {d.SEND === 0 && (
+                    <button
+                      onClick={() => deleteDetail(d.DETAIL_ID)}
+                      className="btn-delete"
+                      style={{ marginLeft: '10px' }}
+                    >
+                      移除
+                    </button>
+                  )}
                 </td>
               </tr>
             )) : (

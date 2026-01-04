@@ -46,7 +46,9 @@
 }
 
 .btn-primary {
-  padding: 8px 16px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 5px 10px;
   background-color: #007bff;
   color: white;
   border: none;
@@ -77,13 +79,13 @@
 }
 
 .item-thumbnail {
+  margin-top: 10px;
   width: 50px;
   height: 50px;
   object-fit: cover;
 }
 
 .type-badge {
-  background: #f0f0f0;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.85em;

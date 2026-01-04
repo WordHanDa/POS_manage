@@ -8,6 +8,10 @@ const ITEM = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // --- 新增：排序狀態 ---
+  // key: 排序的欄位名稱, direction: 'asc' (升序) 或 'desc' (降序)
+  const [sortConfig, setSortConfig] = useState({ key: 'ITEM_ID', direction: 'asc' });
+
   const API_BASE = 'http://localhost:3002';
 
   const fetchItems = async () => {
@@ -25,6 +29,36 @@ const ITEM = () => {
     }
   };
 
+  // --- 新增：處理排序點擊的函數 ---
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // --- 新增：計算排序後的資料 ---
+  const getSortedItems = () => {
+    const sortableItems = [...items];
+    if (sortConfig.key !== null) {
+      sortableItems.sort((a, b) => {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        // 處理數字與字串的比較
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  };
+
   const addItem = async () => {
     try {
       const response = await fetch(`${API_BASE}/ITEM`, {
@@ -34,8 +68,8 @@ const ITEM = () => {
           name: newItem.name,
           price: parseFloat(newItem.price),
           description: newItem.description,
-          pictureUrl: newItem.pictureUrl, // 新增
-          type: newItem.type             // 新增
+          pictureUrl: newItem.pictureUrl,
+          type: newItem.type
         })
       });
       if (!response.ok) throw new Error('Failed to add item');
@@ -55,8 +89,8 @@ const ITEM = () => {
           name: editingItem.ITEM_NAME,
           price: parseFloat(editingItem.ITEM_PRICE),
           description: editingItem.Description,
-          pictureUrl: editingItem.PICTURE_URL, // 注意後端傳回的欄位名是大寫
-          type: editingItem.Type               // 注意後端傳回的欄位名是大寫
+          pictureUrl: editingItem.PICTURE_URL,
+          type: editingItem.Type
         })
       });
       if (!response.ok) throw new Error('Failed to update item');
@@ -98,6 +132,15 @@ const ITEM = () => {
   useEffect(() => {
     fetchItems();
   }, []);
+
+  // 取得當前排序後的陣列
+  const sortedItems = getSortedItems();
+
+  // 輔助函式：顯示排序圖示
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return '↕️';
+    return sortConfig.direction === 'asc' ? '🔼' : '🔽';
+  };
 
   return (
     <div className="container">
@@ -190,17 +233,26 @@ const ITEM = () => {
         <table className="item-table">
           <thead>
             <tr>
-              <th>ID</th>
+              {/* 點擊標籤進行排序 */}
+              <th onClick={() => requestSort('ITEM_ID')} style={{ cursor: 'pointer' }}>
+                ID {getSortIcon('ITEM_ID')}
+              </th>
               <th>Image</th>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Price</th>
+              <th onClick={() => requestSort('ITEM_NAME')} style={{ cursor: 'pointer' }}>
+                Name {getSortIcon('ITEM_NAME')}
+              </th>
+              <th onClick={() => requestSort('Type')} style={{ cursor: 'pointer' }}>
+                Type {getSortIcon('Type')}
+              </th>
+              <th onClick={() => requestSort('ITEM_PRICE')} style={{ cursor: 'pointer' }}>
+                Price {getSortIcon('ITEM_PRICE')}
+              </th>
               <th>Description</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {items.map(item => (
+            {sortedItems.map(item => (
               <tr key={item.ITEM_ID}>
                 <td>{item.ITEM_ID}</td>
                 <td>
