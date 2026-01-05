@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import './Management.css';
 
-const ITEM = ({API_BASE}) => {
+const ITEM = ({ API_BASE }) => {
   const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', pictureUrl: '', type: '' });
+  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', pictureUrl: '', type: 'SPARKLING' }); // 預設值
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // --- 新增：排序狀態 ---
-  // key: 排序的欄位名稱, direction: 'asc' (升序) 或 'desc' (降序)
+  // --- 定義品項種類選項 ---
+  const ITEM_TYPES = [
+    { value: 'SPARKLING', label: '氣泡酒 (SPARKLING)' },
+    { value: 'SHOTS', label: '一口酒 (SHOTS)' },
+    { value: 'GATHERING_DRINKS', label: '聚會飲品 (GATHERING_DRINKS)' },
+    { value: 'TASTING_MENU', label: '品味菜單 (TASTING_MENU)' }
+  ];
+
   const [sortConfig, setSortConfig] = useState({ key: 'ITEM_ID', direction: 'asc' });
 
+  // ... (fetchItems, requestSort, getSortedItems 邏輯保持不變) ...
   const fetchItems = async () => {
     setLoading(true);
     try {
@@ -27,7 +34,6 @@ const ITEM = ({API_BASE}) => {
     }
   };
 
-  // --- 新增：處理排序點擊的函數 ---
   const requestSort = (key) => {
     let direction = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -36,21 +42,14 @@ const ITEM = ({API_BASE}) => {
     setSortConfig({ key, direction });
   };
 
-  // --- 新增：計算排序後的資料 ---
   const getSortedItems = () => {
     const sortableItems = [...items];
     if (sortConfig.key !== null) {
       sortableItems.sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
-
-        // 處理數字與字串的比較
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
     }
@@ -71,7 +70,7 @@ const ITEM = ({API_BASE}) => {
         })
       });
       if (!response.ok) throw new Error('Failed to add item');
-      setNewItem({ name: '', price: '', description: '', pictureUrl: '', type: '' });
+      setNewItem({ name: '', price: '', description: '', pictureUrl: '', type: 'SPARKLING' });
       fetchItems();
     } catch (err) {
       setError(err.message);
@@ -112,29 +111,18 @@ const ITEM = ({API_BASE}) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingItem) {
-      updateItem();
-    } else {
-      addItem();
-    }
+    editingItem ? updateItem() : addItem();
   };
 
   const handleEdit = (item) => {
     setEditingItem({ ...item });
   };
 
-  const cancelEdit = () => {
-    setEditingItem(null);
-  };
-
   useEffect(() => {
     fetchItems();
   }, []);
 
-  // 取得當前排序後的陣列
   const sortedItems = getSortedItems();
-
-  // 輔助函式：顯示排序圖示
   const getSortIcon = (key) => {
     if (sortConfig.key !== key) return '↕️';
     return sortConfig.direction === 'asc' ? '🔼' : '🔽';
@@ -143,10 +131,8 @@ const ITEM = ({API_BASE}) => {
   return (
     <div className="container">
       <h1>品項管理</h1>
-      
       {error && <div className="error-message">{error}</div>}
       
-      {/* Add/Edit Form */}
       <form onSubmit={handleSubmit} className="item-form">
         <h2>{editingItem ? '編輯品項' : '新增品項'}</h2>
         
@@ -155,7 +141,7 @@ const ITEM = ({API_BASE}) => {
             <label>名稱: </label>
             <input
               type="text"
-              value={(editingItem ? editingItem.ITEM_NAME : newItem.name || '')}
+              value={editingItem ? editingItem.ITEM_NAME : newItem.name}
               onChange={(e) => editingItem 
                 ? setEditingItem({ ...editingItem, ITEM_NAME: e.target.value })
                 : setNewItem({ ...newItem, name: e.target.value })
@@ -168,7 +154,7 @@ const ITEM = ({API_BASE}) => {
             <input
               type="number"
               step="0.01"
-              value={(editingItem ? editingItem.ITEM_PRICE : newItem.price) || ''}
+              value={editingItem ? editingItem.ITEM_PRICE : newItem.price}
               onChange={(e) => editingItem 
                 ? setEditingItem({ ...editingItem, ITEM_PRICE: e.target.value })
                 : setNewItem({ ...newItem, price: e.target.value })
@@ -176,24 +162,31 @@ const ITEM = ({API_BASE}) => {
               required
             />
           </div>
+          
+          {/* --- 修改：將 Type 改為 Select --- */}
           <div className="form-group">
             <label>種類: </label>
-            <input
-              type="text"
-              placeholder="例如：飲料、食物"
-              value={(editingItem ? editingItem.Type : newItem.type) || ''}
+            <select
+              value={editingItem ? editingItem.Type : newItem.type}
               onChange={(e) => editingItem 
                 ? setEditingItem({ ...editingItem, Type: e.target.value })
                 : setNewItem({ ...newItem, type: e.target.value })
               }
-            />
+              required
+            >
+              {ITEM_TYPES.map(type => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
           </div>
+
           <div className="form-group">
             <label>圖片連結: </label>
             <input
               type="text"
-              placeholder="http://..."
-              value={(editingItem ? editingItem.PICTURE_URL : newItem.pictureUrl) || ''}
+              value={editingItem ? editingItem.PICTURE_URL : newItem.pictureUrl}
               onChange={(e) => editingItem 
                 ? setEditingItem({ ...editingItem, PICTURE_URL: e.target.value })
                 : setNewItem({ ...newItem, pictureUrl: e.target.value })
@@ -204,49 +197,33 @@ const ITEM = ({API_BASE}) => {
 
         <div className="description-area">
           <div className="form-group">
-          <label>描述: </label>
-          <textarea
-            value={(editingItem ? editingItem.Description : newItem.description) || ''}
-            onChange={(e) => editingItem 
-              ? setEditingItem({ ...editingItem, Description: e.target.value })
-              : setNewItem({ ...newItem, description: e.target.value })
-            }
-          />
+            <label>描述: </label>
+            <textarea
+              value={editingItem ? editingItem.Description : newItem.description}
+              onChange={(e) => editingItem 
+                ? setEditingItem({ ...editingItem, Description: e.target.value })
+                : setNewItem({ ...newItem, description: e.target.value })
+              }
+            />
           </div>
         </div>
 
         <div className="button-group">
-          <button type="submit" className="btn-primary">
-            {editingItem ? '更新' : '加入'}品項
-          </button>
-          {editingItem && (
-            <button type="button" onClick={cancelEdit} className="btn-secondary">
-              取消
-            </button>
-          )}
+          <button type="submit" className="btn-primary">{editingItem ? '更新' : '加入'}品項</button>
+          {editingItem && <button type="button" onClick={() => setEditingItem(null)} className="btn-secondary">取消</button>}
         </div>
       </form>
 
-      {/* Items List */}
       <h2>品項清單</h2>
       {loading ? <p>載入中...</p> : (
         <table className="item-table">
           <thead>
             <tr>
-              {/* 點擊標籤進行排序 */}
-              <th onClick={() => requestSort('ITEM_ID')} style={{ cursor: 'pointer' }}>
-                ID {getSortIcon('ITEM_ID')}
-              </th>
+              <th onClick={() => requestSort('ITEM_ID')} style={{ cursor: 'pointer' }}>ID {getSortIcon('ITEM_ID')}</th>
               <th>圖片</th>
-              <th onClick={() => requestSort('ITEM_NAME')} style={{ cursor: 'pointer' }}>
-                名稱 {getSortIcon('ITEM_NAME')}
-              </th>
-              <th onClick={() => requestSort('Type')} style={{ cursor: 'pointer' }}>
-                類型 {getSortIcon('Type')}
-              </th>
-              <th onClick={() => requestSort('ITEM_PRICE')} style={{ cursor: 'pointer' }}>
-                價格 {getSortIcon('ITEM_PRICE')}
-              </th>
+              <th onClick={() => requestSort('ITEM_NAME')} style={{ cursor: 'pointer' }}>名稱 {getSortIcon('ITEM_NAME')}</th>
+              <th onClick={() => requestSort('Type')} style={{ cursor: 'pointer' }}>類型 {getSortIcon('Type')}</th>
+              <th onClick={() => requestSort('ITEM_PRICE')} style={{ cursor: 'pointer' }}>價格 {getSortIcon('ITEM_PRICE')}</th>
               <th>描述</th>
               <th>操作</th>
             </tr>
@@ -255,11 +232,7 @@ const ITEM = ({API_BASE}) => {
             {sortedItems.map(item => (
               <tr key={item.ITEM_ID}>
                 <td>{item.ITEM_ID}</td>
-                <td>
-                  {item.PICTURE_URL ? (
-                    <img src={item.PICTURE_URL} alt={item.ITEM_NAME} className="item-thumbnail" />
-                  ) : 'No Image'}
-                </td>
+                <td>{item.PICTURE_URL ? <img src={item.PICTURE_URL} alt={item.ITEM_NAME} className="item-thumbnail" /> : 'No Image'}</td>
                 <td>{item.ITEM_NAME}</td>
                 <td><span className="type-badge">{item.Type}</span></td>
                 <td>${item.ITEM_PRICE}</td>
