@@ -272,3 +272,18 @@
 .footer-total strong {
   color: #d9480f; /* 橘紅色強調總額 */
 }
+
+select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 100%;
+}
+
+.type-badge {
+  color: #4338ca;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: bold;
+}
