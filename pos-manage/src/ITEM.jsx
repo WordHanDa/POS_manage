@@ -10,7 +10,7 @@ const ITEM = ({ API_BASE }) => {
 
   // --- 定義品項種類選項 ---
   const ITEM_TYPES = [
-    { value: 'SPARKLING', label: '氣泡酒 (SPARKLING)' },
+    { value: 'SPARKLING', label: '氣泡 (SPARKLING)' },
     { value: 'SHOT', label: '一口酒 (SHOTS)' },
     { value: 'GATHERING_DRINKS', label: '聚會飲品 (GATHERING_DRINKS)' },
     { value: 'TASTING_MENU', label: '品味菜單 (TASTING_MENU)' },
