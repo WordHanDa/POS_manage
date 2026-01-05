@@ -11,9 +11,16 @@ const ITEM = ({ API_BASE }) => {
   // --- 定義品項種類選項 ---
   const ITEM_TYPES = [
     { value: 'SPARKLING', label: '氣泡酒 (SPARKLING)' },
-    { value: 'SHOTS', label: '一口酒 (SHOTS)' },
+    { value: 'SHOT', label: '一口酒 (SHOTS)' },
     { value: 'GATHERING_DRINKS', label: '聚會飲品 (GATHERING_DRINKS)' },
-    { value: 'TASTING_MENU', label: '品味菜單 (TASTING_MENU)' }
+    { value: 'TASTING_MENU', label: '品味菜單 (TASTING_MENU)' },
+    { value: 'SIGNATURE', label: '原創 (SIGNATURE)' },
+    { value: 'TASTING_GIN', label: '單杯 琴酒 (TASTING GIN)' },
+    { value: 'TASTING_WHISKY', label: '單杯 威士忌 (TASTING WHISKY)' },
+    { value: 'TASTING_RUM', label: '單杯 蘭姆 (TASTING RUM)' },
+    { value: 'TASTING_VODKA', label: '單杯 伏特加 (TASTING VODKA)' },
+    { value: 'TASTING_TEQUILA', label: '單杯 龍舌蘭 (TASTING TEQUILA)' },
+    { value: 'OTHER', label: '其他 (OTHER)' }
   ];
 
   const [sortConfig, setSortConfig] = useState({ key: 'ITEM_ID', direction: 'asc' });
