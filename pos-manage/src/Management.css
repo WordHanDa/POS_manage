@@ -278,11 +278,3 @@ select {
   border-radius: 4px;
   width: 100%;
 }
-
-.type-badge {
-  color: #4338ca;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.85em;
-  font-weight: bold;
-}
