@@ -233,7 +233,7 @@ const AUDIT = ({ API_BASE }) => {
                               <tbody>
                                 {orderDetails.map(d => (
                                   <tr key={d.DETAIL_ID} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '8px' }}>{d.ITEM_NAME}</td>
+                                    <td style={{ textAlign: 'left', padding: '8px' }}>{d.ITEM_NAME}</td>
                                     <td style={{ textAlign: 'left' }}>${Number(d.PRICE_AT_SALE).toFixed(0)}</td>
                                     <td style={{ textAlign: 'left' }}>x {d.QUANTITY}</td>
                                     <td style={{ textAlign: 'left' }}>{(!d.SALE_IN_PERCENT===100) ? `${100 - d.SALE_IN_PERCENT}%` : '-'}</td>
