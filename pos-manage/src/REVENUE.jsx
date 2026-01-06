@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
 import './Management.css';
 
 const REVENUE = ({ API_BASE }) => {
@@ -76,21 +75,10 @@ const REVENUE = ({ API_BASE }) => {
 
   // 輪詢 API
   useEffect(() => {
-  const socket = io(API_BASE, {
-    transports: ['websocket', 'polling'], // 強制先嘗試 websocket
-    withCredentials: true
-  });
-
-  socket.on('connect_error', (err) => {
-    console.error('Socket 連線失敗:', err.message);
-  });
-
-  socket.on('order_updated', () => {
     fetchRevenueDetails(selectedDate);
-  });
-
-  return () => socket.disconnect();
-}, [API_BASE, selectedDate]);
+    const interval = setInterval(() => fetchRevenueDetails(selectedDate), 30000);
+    return () => clearInterval(interval);
+  }, [selectedDate]);
 
   // 驅動秒數跳動
   useEffect(() => {
