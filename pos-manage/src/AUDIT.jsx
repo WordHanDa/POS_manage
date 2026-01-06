@@ -193,17 +193,17 @@ const AUDIT = ({ API_BASE }) => {
 
                             <div className="detail-footer">
                               {/* 左側備註區 */}
-                              <div className="footer-notes" style={{ fontSize: '0.9em', color: '#666', background: '#fff', padding: '10px', borderRadius: '4px' }}>
+                              <div className="footer-notes">
                                 <strong>訂單備註：</strong> {order.NOTE || '無備註'}
                               </div>
 
                               {/* 右側金額計算區 */}
-                              <div className="footer-total" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
-                                <div style={{ fontSize: '0.9em', color: '#868e96' }}>
+                              <div className="footer-total">
+                                <div className='footer-subtotal'>
                                   品項小計： <strong>${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</strong>
                                 </div>
 
-                                <div style={{ fontSize: '0.9em', color: '#e53e3e' }}>
+                                <div className='footer-discount'>
                                   折扣讓利 (DISCOUNT)： <strong>-${Number(order.DISCOUNT).toFixed(2)}</strong>
                                 </div>
 
