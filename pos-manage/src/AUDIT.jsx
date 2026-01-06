@@ -245,7 +245,9 @@ const AUDIT = ({ API_BASE }) => {
 
                             <div className="detail-footer">
                               <div className="footer-notes">
-                                <strong>訂單備註：</strong><br />{order.NOTE || '無備註'}
+                                {order.ORDER_DATE}<br />
+                                <strong>訂單備註：</strong><br />
+                                {order.NOTE || '無備註'}
                               </div>
                               <div className="footer-total">
                                 <div className='footer-subtotal' style={{ fontSize: '0.9em', color: '#888' }}>
