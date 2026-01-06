@@ -76,17 +76,21 @@ const REVENUE = ({ API_BASE }) => {
 
   // 輪詢 API
   useEffect(() => {
-    const socket = io(API_BASE);
+  const socket = io(API_BASE, {
+    transports: ['websocket', 'polling'], // 強制先嘗試 websocket
+    withCredentials: true
+  });
+
+  socket.on('connect_error', (err) => {
+    console.error('Socket 連線失敗:', err.message);
+  });
+
+  socket.on('order_updated', () => {
     fetchRevenueDetails(selectedDate);
-    socket.on('order_updated', (data) => {
-      console.log('收到更新通知:', data.message);
-      fetchRevenueDetails(selectedDate);
-    });
-    return () => {
-      socket.off('order_updated');
-      socket.disconnect();
-    };
-  }, [selectedDate, API_BASE]);
+  });
+
+  return () => socket.disconnect();
+}, [API_BASE, selectedDate]);
 
   // 驅動秒數跳動
   useEffect(() => {
