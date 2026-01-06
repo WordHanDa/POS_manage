@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './Management.css';
 
-const AUDIT = ({API_BASE}) => {
+const AUDIT = ({ API_BASE }) => {
   const [orders, setOrders] = useState([]);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [orderDetails, setOrderDetails] = useState([]);
@@ -13,7 +13,7 @@ const AUDIT = ({API_BASE}) => {
   const [endDate, setEndDate] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'ORDER_ID', direction: 'desc' });
 
-
+  // 1. 取得所有訂單 (後端 API: /ORDER 已包含 DISCOUNT 欄位)
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -28,13 +28,14 @@ const AUDIT = ({API_BASE}) => {
     }
   };
 
+  // 2. 展開明細
   const toggleExpand = async (orderId) => {
     if (expandedOrder === orderId) {
       setExpandedOrder(null);
       return;
     }
     setExpandedOrder(orderId);
-    setOrderDetails([]);
+    setOrderDetails([]); // 先清空舊明細，顯示載入中
     try {
       const response = await fetch(`${API_BASE}/ORDER_DETAIL/${orderId}`);
       if (!response.ok) throw new Error('無法載入明細');
@@ -49,7 +50,7 @@ const AUDIT = ({API_BASE}) => {
     fetchOrders();
   }, []);
 
-  // --- 核心邏輯：根據您的資料庫欄位 (ORDER_DATE) 篩選 ---
+  // --- 篩選邏輯 ---
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
       const orderDate = new Date(order.ORDER_DATE);
@@ -60,7 +61,7 @@ const AUDIT = ({API_BASE}) => {
     });
   }, [orders, startDate, endDate]);
 
-  // --- 排序邏輯：對應 ORDER_ID, ORDER_MOUNT ---
+  // --- 排序邏輯 ---
   const sortedOrders = useMemo(() => {
     return [...filteredOrders].sort((a, b) => {
       const aVal = a[sortConfig.key];
@@ -71,9 +72,15 @@ const AUDIT = ({API_BASE}) => {
     });
   }, [filteredOrders, sortConfig]);
 
-  // 使用 ORDER_MOUNT 計算總營收
-  const totalRevenue = useMemo(() => {
-    return filteredOrders.reduce((sum, o) => sum + (parseFloat(o.ORDER_MOUNT) || 0), 0);
+  // --- 營收總結計算 ---
+  const stats = useMemo(() => {
+    return filteredOrders.reduce((acc, o) => {
+      // 累加訂單最終收到的錢
+      acc.totalRevenue += parseFloat(o.ORDER_MOUNT || 0);
+      // 累加折扣出去的錢 (用於稽核成本)
+      acc.totalDiscount += parseFloat(o.DISCOUNT || 0);
+      return acc;
+    }, { totalRevenue: 0, totalDiscount: 0 });
   }, [filteredOrders]);
 
   return (
@@ -87,13 +94,16 @@ const AUDIT = ({API_BASE}) => {
           </div>
           <div className="card" style={{ borderTopColor: '#52c41a' }}>
             <h3>區間總營收</h3>
-            {/* 根據 ORDER_MOUNT 彙整 */}
-            <p className="card-value">${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            <p className="card-value">${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div className="card" style={{ borderTopColor: '#f5222d' }}>
+            <h3>已折讓總額</h3>
+            <p className="card-value" style={{ color: '#cf1322' }}>-${stats.totalDiscount.toLocaleString()}</p>
           </div>
         </div>
       </header>
 
-      {error && <div className="error-message">錯誤：{error}</div>}
+      {error && <div className="error-message" style={{ color: 'red' }}>錯誤：{error}</div>}
 
       <div className="filter-panel">
         <div className="filter-group">
@@ -124,13 +134,7 @@ const AUDIT = ({API_BASE}) => {
               })} style={{ cursor: 'pointer' }}>
                 成交時間 {sortConfig.key === 'ORDER_DATE' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
               </th>
-              <th onClick={() => setSortConfig({
-                key: 'ORDER_MOUNT',
-                direction: sortConfig.direction === 'asc' ? 'desc' : 'asc'
-              })} style={{ cursor: 'pointer' }}>
-                訂單金額 {sortConfig.key === 'ORDER_MOUNT' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
-              </th>
-              <th>備註</th>
+              <th>應付總額</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -139,60 +143,68 @@ const AUDIT = ({API_BASE}) => {
               <React.Fragment key={order.ORDER_ID}>
                 <tr className={expandedOrder === order.ORDER_ID ? 'expanded-row' : ''}>
                   <td>#{order.ORDER_ID}</td>
-                  <td>{order.SEAT_NAME}</td>
-                  <td>{new Date(order.ORDER_DATE).toLocaleString()}</td>
-                  <td className="price-cell"><strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong></td>
-                  <td>{order.NOTE || '-'}</td>
+                  <td><span className="type-badge">{order.SEAT_NAME || `桌號:${order.SEAT_ID}`}</span></td>
+                  <td style={{ fontSize: '0.9em' }}>{new Date(order.ORDER_DATE).toLocaleString()}</td>
+                  <td className="price-cell">
+                    <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
+                    {order.DISCOUNT > 0 && <small style={{ color: 'red', display: 'block', fontSize: '0.7em' }}>(已扣折扣 ${order.DISCOUNT})</small>}
+                  </td>
                   <td>
                     <button className="btn-secondary" onClick={() => toggleExpand(order.ORDER_ID)}>
-                      {expandedOrder === order.ORDER_ID ? '收合' : '明細'}
+                      {expandedOrder === order.ORDER_ID ? '收合內容' : '查看明細'}
                     </button>
                   </td>
                 </tr>
 
                 {expandedOrder === order.ORDER_ID && (
                   <tr className="detail-row">
-                    <td colSpan="6" className="detail-container-cell">
-                      <div className="audit-detail-card">
-                        <div className="detail-header">
-                          <h4>訂單明細內容 - 單號 #{order.ORDER_ID}</h4>
-                          <span className="detail-info-badge">桌號: {order.SEAT_ID}</span>
+                    <td colSpan="5" className="detail-container-cell">
+                      <div className="audit-detail-card" style={{ background: '#f9f9f9', padding: '20px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                        <div className="detail-header" style={{ marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
+                          <h4 style={{ margin: 0 }}>單號 #{order.ORDER_ID} 詳細品項</h4>
+                          <span style={{ fontSize: '0.9em', color: '#666' }}>結帳狀態：{order.settle === 1 ? '✅ 已結清' : '❌ 未結清'}</span>
                         </div>
 
                         {orderDetails.length > 0 ? (
                           <div className="detail-body">
-                            {/* 改用 Grid 或 Flex 佈局的清單，比表格更清晰 */}
-                            <div className="detail-list-header">
-                              <span>品項</span>
-                              <span>單價</span>
-                              <span>數量</span>
-                              <span>折扣</span>
-                              <span>小計</span>
-                            </div>
-                            {orderDetails.map(d => (
-                              <div className="detail-item-row" key={d.DETAIL_ID}>
-                                <span className="item-name">{d.ITEM_NAME}</span>
-                                <span className="item-price">${Number(d.PRICE_AT_SALE).toFixed(0)}</span>
-                                <span className="item-qty">x {d.QUANTITY}</span>
-                                <span className="item-discount">{d.SALE_IN_PERCENT}%</span>
-                                <span className="item-subtotal">
-                                  ${(d.PRICE_AT_SALE * d.QUANTITY * (d.SALE_IN_PERCENT / 100)).toFixed(2)}
-                                </span>
-                              </div>
-                            ))}
+                            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px' }}>
+                              <thead style={{ background: '#eee', fontSize: '0.85em' }}>
+                                <tr>
+                                  <th style={{ textAlign: 'left', padding: '8px' }}>品項名稱</th>
+                                  <th>單價</th>
+                                  <th>數量</th>
+                                  <th>小計</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {orderDetails.map(d => (
+                                  <tr key={d.DETAIL_ID} style={{ borderBottom: '1px solid #eee' }}>
+                                    <td style={{ padding: '8px' }}>{d.ITEM_NAME}</td>
+                                    <td style={{ textAlign: 'center' }}>${Number(d.PRICE_AT_SALE).toFixed(0)}</td>
+                                    <td style={{ textAlign: 'center' }}>x {d.QUANTITY}</td>
+                                    <td style={{ textAlign: 'right', padding: '8px' }}>
+                                      ${(d.PRICE_AT_SALE * d.QUANTITY).toFixed(2)}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
 
-                            <div className="detail-footer">
-                              <div className="footer-notes">
-                                <strong>備註:</strong> {order.NOTE || '無備註'}
-                              </div>
-                              <div className="footer-total">
-                                <span>訂單總額:</span>
-                                <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
-                              </div>
+                            <div className="detail-footer" style={{ borderTop: '2px double #ccc', paddingTop: '10px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                                    <div>品項小計： <strong>${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</strong></div>
+                                    <div style={{ color: 'red' }}>折扣讓利 (DISCOUNT)： <strong>-${Number(order.DISCOUNT).toFixed(2)}</strong></div>
+                                    <div style={{ fontSize: '1.2em', borderTop: '1px solid #333', marginTop: '5px', paddingTop: '5px' }}>
+                                        應付實收總額： <strong style={{ color: '#007bff' }}>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: '10px', fontSize: '0.9em', color: '#666', background: '#fff', padding: '10px', borderRadius: '4px' }}>
+                                    <strong>訂單備註：</strong> {order.NOTE || '無備註'}
+                                </div>
                             </div>
                           </div>
                         ) : (
-                          <div className="loading-spinner">載入中...</div>
+                          <div className="loading-spinner">正在檢索明細...</div>
                         )}
                       </div>
                     </td>
@@ -200,7 +212,7 @@ const AUDIT = ({API_BASE}) => {
                 )}
               </React.Fragment>
             )) : (
-              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>目前沒有相符的交易記錄</td></tr>
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>此日期區間內無任何訂單資料</td></tr>
             )}
           </tbody>
         </table>
