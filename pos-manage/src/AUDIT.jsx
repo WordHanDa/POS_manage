@@ -191,16 +191,33 @@ const AUDIT = ({ API_BASE }) => {
                               </tbody>
                             </table>
 
-                            <div className="detail-footer" style={{ borderTop: '2px double #ccc', paddingTop: '10px' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
-                                <div>品項小計： <strong>${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</strong></div>
-                                <div style={{ color: 'red' }}>折扣讓利 (DISCOUNT)： <strong>-${Number(order.DISCOUNT).toFixed(2)}</strong></div>
-                                <div style={{ fontSize: '1.2em', borderTop: '1px solid #333', marginTop: '5px', paddingTop: '5px' }}>
-                                  應付實收總額： <strong style={{ color: '#007bff' }}>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
-                                </div>
-                              </div>
-                              <div style={{ marginTop: '10px', fontSize: '0.9em', color: '#666', background: '#fff', padding: '10px', borderRadius: '4px' }}>
+                            <div className="detail-footer">
+                              {/* 左側備註區 */}
+                              <div className="footer-notes" style={{ fontSize: '0.9em', color: '#666', background: '#fff', padding: '10px', borderRadius: '4px' }}>
                                 <strong>訂單備註：</strong> {order.NOTE || '無備註'}
+                              </div>
+
+                              {/* 右側金額計算區 */}
+                              <div className="footer-total" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                                <div style={{ fontSize: '0.9em', color: '#868e96' }}>
+                                  品項小計： <strong>${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</strong>
+                                </div>
+
+                                <div style={{ fontSize: '0.9em', color: '#e53e3e' }}>
+                                  折扣讓利 (DISCOUNT)： <strong>-${Number(order.DISCOUNT).toFixed(2)}</strong>
+                                </div>
+
+                                {/* 最終實收金額線條與強調 */}
+                                <div style={{
+                                  fontSize: '1.2em',
+                                  borderTop: '2px solid #eee',
+                                  marginTop: '8px',
+                                  paddingTop: '8px',
+                                  color: '#d9480f'
+                                }}>
+                                  <span>應付實收總額：</span>
+                                  <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
+                                </div>
                               </div>
                             </div>
                           </div>
