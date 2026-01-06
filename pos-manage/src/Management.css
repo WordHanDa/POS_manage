@@ -358,3 +358,13 @@ select {
     margin-top: 10px;
   }
 }
+
+.description-cell {
+  max-width: 200px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;    /* 設定顯示幾行 */
+  overflow: hidden;
+  font-size: 0.9em;
+  word-break: break-all;
+}
