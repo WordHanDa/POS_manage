@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import './Management.css';
 
 const AUDIT = ({ API_BASE }) => {
@@ -13,11 +15,14 @@ const AUDIT = ({ API_BASE }) => {
   const [endDate, setEndDate] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'ORDER_ID', direction: 'desc' });
 
-  // 1. 取得所有訂單 (後端 API: /ORDER 已包含 DISCOUNT 欄位)
+  // 用於 PDF 選取的 Ref
+  const pdfExportRef = useRef(null);
+
+  // 1. 取得所有訂單
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      // 加上 ?t=... 參數，確保每次都是跟伺服器拿最新資料
+      // 加上時間戳記防止快取
       const response = await fetch(`${API_BASE}/ORDER?t=${new Date().getTime()}`);
       if (!response.ok) throw new Error('無法取得訂單資料');
       const data = await response.json();
@@ -29,14 +34,14 @@ const AUDIT = ({ API_BASE }) => {
     }
   };
 
-  // 2. 展開明細
+  // 2. 展開明細並獲取資料
   const toggleExpand = async (orderId) => {
     if (expandedOrder === orderId) {
       setExpandedOrder(null);
       return;
     }
     setExpandedOrder(orderId);
-    setOrderDetails([]); // 先清空舊明細，顯示載入中
+    setOrderDetails([]);
     try {
       const response = await fetch(`${API_BASE}/ORDER_DETAIL/${orderId}`);
       if (!response.ok) throw new Error('無法載入明細');
@@ -47,11 +52,61 @@ const AUDIT = ({ API_BASE }) => {
     }
   };
 
+  // 3. 匯出 PDF 邏輯
+  const exportToPDF = async (orderId) => {
+    const element = pdfExportRef.current;
+    if (!element) return;
+
+    const btn = element.querySelector('.no-pdf');
+    if (btn) btn.style.visibility = 'hidden';
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+
+      // --- 解決亂碼核心程式碼 ---
+      const pdf = new jsPDF('p', 'mm', 'a4');
+
+      // 1. 載入字體 (請將 'BASE64_STRING_HERE' 替換為實際轉換後的 Base64 字串)
+      const myFont = "BASE64_STRING_HERE";
+
+      // 2. 將字體加入虛擬檔案系統
+      pdf.addFileToVFS("MyFont.ttf", myFont);
+
+      // 3. 註冊字體
+      pdf.addFont("MyFont.ttf", "MyFont", "normal");
+
+      // 4. 設定使用該字體
+      pdf.setFont("MyFont");
+      // ------------------------
+
+      pdf.setFontSize(16);
+      // 現在這裡的中文就能正常顯示，不再是亂碼
+      pdf.text(`訂單稽核報告 - 單號 #${orderId}`, 10, 15);
+
+      const imgWidth = 190;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 10, 25, imgWidth, imgHeight);
+
+      pdf.save(`Order_Audit_${orderId}.pdf`);
+    } catch (err) {
+      console.error('PDF 產生失敗:', err);
+      alert('無法產生 PDF 檔案');
+    } finally {
+      if (btn) btn.style.visibility = 'visible';
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
   }, []);
 
-  // --- 篩選邏輯 ---
+  // 篩選與排序邏輯
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
       const orderDate = new Date(order.ORDER_DATE);
@@ -62,7 +117,6 @@ const AUDIT = ({ API_BASE }) => {
     });
   }, [orders, startDate, endDate]);
 
-  // --- 排序邏輯 ---
   const sortedOrders = useMemo(() => {
     return [...filteredOrders].sort((a, b) => {
       const aVal = a[sortConfig.key];
@@ -73,12 +127,9 @@ const AUDIT = ({ API_BASE }) => {
     });
   }, [filteredOrders, sortConfig]);
 
-  // --- 營收總結計算 ---
   const stats = useMemo(() => {
     return filteredOrders.reduce((acc, o) => {
-      // 累加訂單最終收到的錢
       acc.totalRevenue += parseFloat(o.ORDER_MOUNT || 0);
-      // 累加折扣出去的錢 (用於稽核成本)
       acc.totalDiscount += parseFloat(o.DISCOUNT || 0);
       return acc;
     }, { totalRevenue: 0, totalDiscount: 0 });
@@ -104,55 +155,46 @@ const AUDIT = ({ API_BASE }) => {
         </div>
       </header>
 
-      {error && <div className="error-message" style={{ color: 'red' }}>錯誤：{error}</div>}
-
       <div className="filter-panel">
         <div className="filter-group">
-          <label>交易日期範圍：</label>
+          <label>日期範圍：</label>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           <span>至</span>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          {(startDate || endDate) && (
-            <button className="btn-clear" onClick={() => { setStartDate(''); setEndDate(''); }}>重置日期</button>
-          )}
+          {(startDate || endDate) && <button className="btn-clear" onClick={() => { setStartDate(''); setEndDate(''); }}>重置</button>}
         </div>
       </div>
+      {error && (
+        <div className="error-message" style={{ color: 'red', padding: '10px', background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: '4px', marginBottom: '20px' }}>
+          <i className="fa-solid fa-circle-exclamation"></i> 系統錯誤：{error}
+        </div>
+      )}
 
       {loading ? <p>正在讀取資料庫...</p> : (
         <table className="item-table">
           <thead>
             <tr>
-              <th onClick={() => setSortConfig({
-                key: 'ORDER_ID',
-                direction: sortConfig.key === 'ORDER_ID' && sortConfig.direction === 'asc' ? 'desc' : 'asc'
-              })} style={{ cursor: 'pointer' }}>
-                訂單編號 {sortConfig.key === 'ORDER_ID' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
-              </th>
+              <th onClick={() => setSortConfig({ key: 'ORDER_ID', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' })} style={{ cursor: 'pointer' }}>單號 ↕</th>
               <th>桌號</th>
-              <th onClick={() => setSortConfig({
-                key: 'ORDER_DATE',
-                direction: sortConfig.direction === 'asc' ? 'desc' : 'asc'
-              })} style={{ cursor: 'pointer' }}>
-                成交時間 {sortConfig.key === 'ORDER_DATE' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
-              </th>
+              <th>成交時間</th>
               <th>應付總額</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
-            {sortedOrders.length > 0 ? sortedOrders.map(order => (
+            {sortedOrders.map(order => (
               <React.Fragment key={order.ORDER_ID}>
                 <tr className={expandedOrder === order.ORDER_ID ? 'expanded-row' : ''}>
                   <td>#{order.ORDER_ID}</td>
-                  <td><span className="type-badge">{order.SEAT_NAME || `桌號:${order.SEAT_ID}`}</span></td>
-                  <td style={{ fontSize: '0.9em' }}>{new Date(order.ORDER_DATE).toLocaleString()}</td>
+                  <td>{order.SEAT_NAME || order.SEAT_ID}</td>
+                  <td>{new Date(order.ORDER_DATE).toLocaleString()}</td>
                   <td className="price-cell">
                     <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
-                    {order.DISCOUNT > 0 && <small style={{ color: 'red', display: 'block', fontSize: '0.7em' }}>(已扣折扣 ${order.DISCOUNT})</small>}
+                    {order.DISCOUNT > 0 && <small style={{ color: 'red', display: 'block' }}>(折 -${order.DISCOUNT})</small>}
                   </td>
                   <td>
                     <button className="btn-secondary" onClick={() => toggleExpand(order.ORDER_ID)}>
-                      {expandedOrder === order.ORDER_ID ? '收合內容' : '查看明細'}
+                      {expandedOrder === order.ORDER_ID ? '收合' : '明細'}
                     </button>
                   </td>
                 </tr>
@@ -160,22 +202,32 @@ const AUDIT = ({ API_BASE }) => {
                 {expandedOrder === order.ORDER_ID && (
                   <tr className="detail-row">
                     <td colSpan="5" className="detail-container-cell">
-                      <div className="audit-detail-card" style={{ background: '#f9f9f9', padding: '20px', borderRadius: '8px', border: '1px solid #ddd' }}>
-                        <div className="detail-header" style={{ marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-                          <h4 style={{ margin: 0 }}>單號 #{order.ORDER_ID}</h4>
-                          <span style={{ fontSize: '0.9em', color: '#666' }}>結帳狀態：{order.settle === 1 ? '✅ 已結清' : '❌ 未結清'}</span>
+                      {/* PDF 匯出區域 */}
+                      <div ref={pdfExportRef} className="audit-detail-card" style={{ background: '#f9f9f9', padding: '20px', border: '1px solid #ddd' }}>
+                        <div className="detail-header" style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
+                          <h4 style={{ margin: 0 }}>單號 #{order.ORDER_ID} 詳細品項</h4>
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                              className="btn-primary no-pdf"
+                              onClick={() => exportToPDF(order.ORDER_ID)}
+                              style={{ padding: '2px 10px', fontSize: '0.8em', backgroundColor: '#52c41a' }}
+                            >
+                              匯出 PDF
+                            </button>
+                            <span style={{ fontSize: '0.9em', color: '#868e96', marginTop: '5%' }}>{order.settle === 1 ? '✅ 已結清' : '❌ 未結清'}</span>
+                          </div>
                         </div>
 
                         {orderDetails.length > 0 ? (
                           <div className="detail-body">
                             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px' }}>
-                              <thead style={{ background: '#eee', fontSize: '0.85em' }}>
+                              <thead style={{ background: '#eee' }}>
                                 <tr>
-                                  <th style={{ textAlign: 'left', padding: '8px' }}>品項名稱</th>
+                                  <th style={{ textAlign: 'left', padding: '8px' }}>品項</th>
                                   <th>單價</th>
                                   <th>數量</th>
                                   <th>折扣％</th>
-                                  <th>小計</th>
+                                  <th style={{ textAlign: 'right' }}>小計</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -184,50 +236,37 @@ const AUDIT = ({ API_BASE }) => {
                                     <td style={{ padding: '8px' }}>{d.ITEM_NAME}</td>
                                     <td style={{ textAlign: 'center' }}>${Number(d.PRICE_AT_SALE).toFixed(0)}</td>
                                     <td style={{ textAlign: 'center' }}>x {d.QUANTITY}</td>
-                                    <td style={{ textAlign: 'center' }}>{100-d.SALE_IN_PERCENT}%</td>
-                                    <td style={{ textAlign: 'right', padding: '8px' }}>
-                                      ${(d.PRICE_AT_SALE * d.QUANTITY * d.SALE_IN_PERCENT * 0.01).toFixed(2)}
-                                    </td>
+                                    <td style={{ textAlign: 'center' }}>{100 - d.SALE_IN_PERCENT}%</td>
+                                    <td style={{ textAlign: 'right', padding: '8px' }}>${(d.PRICE_AT_SALE * d.QUANTITY * d.SALE_IN_PERCENT * 0.01).toFixed(2)}</td>
                                   </tr>
                                 ))}
                               </tbody>
                             </table>
 
                             <div className="detail-footer">
-                              {/* 左側備註區 */}
                               <div className="footer-notes">
                                 <strong>訂單備註：</strong><br />{order.NOTE || '無備註'}
                               </div>
-
-                              {/* 右側金額計算區 */}
                               <div className="footer-total">
-                                <div className='footer-subtotal'>
+                                <div className='footer-subtotal' style={{ fontSize: '0.9em', color: '#888' }}>
                                   品項小計：${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}
                                 </div>
-                                <span></span>
-                                <div className='footer-discount'>
-                                  折扣： -${Number(order.DISCOUNT).toFixed(2)}
+                                <div className='footer-discount' style={{ color: 'red', fontSize: '0.9em' }}>
+                                  折扣讓利： -${Number(order.DISCOUNT).toFixed(2)}
                                 </div>
-
-                                {/* 最終實收金額線條與強調 */}
-                                <div>
-                                  <span>應付實收總額：</span>
-                                  <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
+                                <div style={{ fontSize: '1.2em', borderTop: '1px solid #333', marginTop: '5px' }}>
+                                  應付實收總額： <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        ) : (
-                          <div className="loading-spinner">正在檢索明細...</div>
-                        )}
+                        ) : <p>載入明細中...</p>}
                       </div>
                     </td>
                   </tr>
                 )}
               </React.Fragment>
-            )) : (
-              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>此日期區間內無任何訂單資料</td></tr>
-            )}
+            ))}
           </tbody>
         </table>
       )}

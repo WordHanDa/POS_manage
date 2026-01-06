@@ -334,7 +334,7 @@ select {
   .filter-group select {
     width: 100%;
   }
-
+  
   /* 明細區塊改為彈性佈局 */
   .detail-list-header {
     display: none; /* 手機版隱藏表頭，改用標籤顯示 */
