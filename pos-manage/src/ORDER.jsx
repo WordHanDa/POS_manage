@@ -249,10 +249,10 @@ const ORDER = ({ API_BASE }) => {
                       </span>
                     ) : (
                       <span className="type-badge" style={{
-                        backgroundColor: order.SEND === 1 ? '#52c41a' : '#f5222d',
+                        backgroundColor: order.ITEM_SEND === 1 ? '#52c41a' : '#f5222d',
                         color: 'white'
                       }}>
-                        {order.SEND === 1 ? '全部完成' : '製作中'}
+                        {order.ITEM_SEND === 1 ? '全部完成' : '製作中'}
                       </span>
                     )}
                   </td>
@@ -278,7 +278,7 @@ const ORDER = ({ API_BASE }) => {
                     )}
 
                     {/* 未結清且未完成出單才顯示刪除 */}
-                    {!isSettled && order.SEND !== 1 && (
+                    {!isSettled && order.ITEM_SEND !== 1 && (
                       <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px', color: 'red' }}>
                         刪除
                       </button>
