@@ -19,39 +19,52 @@ const handleDragStart = (e, seatId) => {
   };
 
   const handleDrop = async (e) => {
-    e.preventDefault();
-    const seatId = e.dataTransfer.getData("seatId");
-    const rect = e.currentTarget.getBoundingClientRect();
-    
-    // 1. 計算在畫布上的像素位置 (考慮到滾動距離)
-    const scrollLeft = e.currentTarget.scrollLeft;
-    const scrollTop = e.currentTarget.scrollTop;
-    
-    const clientX = e.clientX - rect.left + scrollLeft;
-    const clientY = e.clientY - rect.top + scrollTop;
+  e.preventDefault();
+  const seatId = e.dataTransfer.getData("seatId");
+  const rect = e.currentTarget.getBoundingClientRect();
+  
+  // 獲取目前滾動條的位置
+  const scrollLeft = e.currentTarget.scrollLeft;
+  const scrollTop = e.currentTarget.scrollTop;
+  
+  // 計算絕對像素位置
+  const clientX = e.clientX - rect.left + scrollLeft;
+  const clientY = e.clientY - rect.top + scrollTop;
 
-    // 2. 轉換為「單位」：除以單位大小並四捨五入
-    const unitX = Math.max(0, Math.min(MAX_UNITS, Math.round(clientX / UNIT_SIZE)));
-    const unitY = Math.max(0, Math.min(MAX_UNITS, Math.round(clientY / UNIT_SIZE)));
+  // 轉換為單位 (單位大小 UNIT_SIZE = 40)
+  const unitX = Math.round(clientX / 40);
+  const unitY = Math.round(clientY / 40);
 
-    const seatToUpdate = seats.find(s => s.SEAT_ID === parseInt(seatId));
-    if (!seatToUpdate) return;
+  // 限制範圍在 0~256
+  const finalX = Math.max(0, Math.min(256, unitX));
+  const finalY = Math.max(0, Math.min(256, unitY));
 
-    try {
-      await fetch(`${API_BASE}/SEAT/${seatId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          seatName: seatToUpdate.SEAT_NAME, 
-          x: unitX, 
-          y: unitY 
-        })
-      });
+  const seatToUpdate = seats.find(s => s.SEAT_ID === parseInt(seatId));
+  if (!seatToUpdate) return;
+
+  try {
+    const response = await fetch(`${API_BASE}/SEAT/${seatId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        seatName: seatToUpdate.SEAT_NAME, 
+        x: finalX, // 對應後端解構的 x
+        y: finalY  // 對應後端解構的 y
+      })
+    });
+
+    if (response.ok) {
+      // 成功後立即重新獲取資料，更新畫面位置
       fetchSeats();
-    } catch (err) {
-      console.error("Update failed", err);
+      setError(null);
+    } else {
+      const errorData = await response.json();
+      setError("更新失敗: " + (errorData.message || "未知錯誤"));
     }
-  };
+  } catch (err) {
+    setError("網路連線失敗: " + err.message);
+  }
+};
 
   const fetchSeats = async () => {
     setLoading(true);
