@@ -17,7 +17,8 @@ const AUDIT = ({ API_BASE }) => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/ORDER`);
+      // 加上 ?t=... 參數，確保每次都是跟伺服器拿最新資料
+      const response = await fetch(`${API_BASE}/ORDER?t=${new Date().getTime()}`);
       if (!response.ok) throw new Error('無法取得訂單資料');
       const data = await response.json();
       setOrders(data);
@@ -191,16 +192,16 @@ const AUDIT = ({ API_BASE }) => {
                             </table>
 
                             <div className="detail-footer" style={{ borderTop: '2px double #ccc', paddingTop: '10px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
-                                    <div>品項小計： <strong>${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</strong></div>
-                                    <div style={{ color: 'red' }}>折扣讓利 (DISCOUNT)： <strong>-${Number(order.DISCOUNT).toFixed(2)}</strong></div>
-                                    <div style={{ fontSize: '1.2em', borderTop: '1px solid #333', marginTop: '5px', paddingTop: '5px' }}>
-                                        應付實收總額： <strong style={{ color: '#007bff' }}>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
-                                    </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                                <div>品項小計： <strong>${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</strong></div>
+                                <div style={{ color: 'red' }}>折扣讓利 (DISCOUNT)： <strong>-${Number(order.DISCOUNT).toFixed(2)}</strong></div>
+                                <div style={{ fontSize: '1.2em', borderTop: '1px solid #333', marginTop: '5px', paddingTop: '5px' }}>
+                                  應付實收總額： <strong style={{ color: '#007bff' }}>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
                                 </div>
-                                <div style={{ marginTop: '10px', fontSize: '0.9em', color: '#666', background: '#fff', padding: '10px', borderRadius: '4px' }}>
-                                    <strong>訂單備註：</strong> {order.NOTE || '無備註'}
-                                </div>
+                              </div>
+                              <div style={{ marginTop: '10px', fontSize: '0.9em', color: '#666', background: '#fff', padding: '10px', borderRadius: '4px' }}>
+                                <strong>訂單備註：</strong> {order.NOTE || '無備註'}
+                              </div>
                             </div>
                           </div>
                         ) : (
