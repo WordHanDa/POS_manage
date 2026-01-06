@@ -246,7 +246,7 @@ const ITEM = ({ API_BASE }) => {
               <tr key={item.ITEM_ID}>
                 <td>{item.ITEM_ID}</td>
                 <td>{item.PICTURE_URL ? <img
-                  src={item.PICTURE_URL || "https://posfront-psi.vercel.app/placeholder.png"}
+                  src={"https://posfront-psi.vercel.app/"+item.PICTURE_URL || "https://posfront-psi.vercel.app/placeholder.png"}
                   alt={item.ITEM_NAME}
                   className="item-thumbnail"
                   onError={handleImgError} // 核心：失敗時觸發
