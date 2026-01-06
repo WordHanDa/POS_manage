@@ -184,7 +184,7 @@ const AUDIT = ({ API_BASE }) => {
                                     <td style={{ padding: '8px' }}>{d.ITEM_NAME}</td>
                                     <td style={{ textAlign: 'center' }}>${Number(d.PRICE_AT_SALE).toFixed(0)}</td>
                                     <td style={{ textAlign: 'center' }}>x {d.QUANTITY}</td>
-                                    <td style={{ textAlign: 'center' }}>{d.SALE_IN_PERCENT}%</td>
+                                    <td style={{ textAlign: 'center' }}>{100-d.SALE_IN_PERCENT}%</td>
                                     <td style={{ textAlign: 'right', padding: '8px' }}>
                                       ${(d.PRICE_AT_SALE * d.QUANTITY * d.SALE_IN_PERCENT * 0.01).toFixed(2)}
                                     </td>
