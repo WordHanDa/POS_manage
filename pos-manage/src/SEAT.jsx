@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Management.css'; 
 
 const UNIT_SIZE = 40; // 定義一個單位等於 40px
-const MAX_UNITS = 256; // 最大 256 單位
+const MAX_UNITS = 64; // 最大 256 單位
 
 const SEAT = ({API_BASE}) => {
   const [seats, setSeats] = useState([]);
