@@ -1,46 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import './Management.css'; 
 
+const UNIT_SIZE = 40; // 定義一個單位等於 40px
+const MAX_UNITS = 256; // 最大 256 單位
+
 const SEAT = ({API_BASE}) => {
   const [seats, setSeats] = useState([]);
   const [newSeat, setNewSeat] = useState({ seatName: '', x: 0, y: 0 });
   const [editingSeat, setEditingSeat] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+const scrollContainerRef = React.useRef(null);
 
-  const handleDragStart = (e, seatId) => {
+const handleDragStart = (e, seatId) => {
     e.dataTransfer.setData("seatId", seatId);
+    // 設置拖動時的偏移量，讓放下的位置更精準
+    e.dataTransfer.setDragImage(new Image(), 0, 0); 
   };
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
+
   const handleDrop = async (e) => {
     e.preventDefault();
     const seatId = e.dataTransfer.getData("seatId");
-    const container = e.currentTarget.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     
-    // 計算相對座標（相對於 floor-plan 容器）
-    // 減去容器的左/上偏移量，並稍微修正讓滑鼠位於點位中心
-    const newX = Math.round(e.clientX - container.left);
-    const newY = Math.round(e.clientY - container.top);
+    // 1. 計算在畫布上的像素位置 (考慮到滾動距離)
+    const scrollLeft = e.currentTarget.scrollLeft;
+    const scrollTop = e.currentTarget.scrollTop;
+    
+    const clientX = e.clientX - rect.left + scrollLeft;
+    const clientY = e.clientY - rect.top + scrollTop;
+
+    // 2. 轉換為「單位」：除以單位大小並四捨五入
+    const unitX = Math.max(0, Math.min(MAX_UNITS, Math.round(clientX / UNIT_SIZE)));
+    const unitY = Math.max(0, Math.min(MAX_UNITS, Math.round(clientY / UNIT_SIZE)));
 
     const seatToUpdate = seats.find(s => s.SEAT_ID === parseInt(seatId));
     if (!seatToUpdate) return;
 
     try {
-      const response = await fetch(`${API_BASE}/SEAT/${seatId}`, {
+      await fetch(`${API_BASE}/SEAT/${seatId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           seatName: seatToUpdate.SEAT_NAME, 
-          x: newX, 
-          y: newY 
+          x: unitX, 
+          y: unitY 
         })
       });
-      if (!response.ok) throw new Error('Update position failed');
-      fetchSeats(); // 重新整理列表以獲取新位置
+      fetchSeats();
     } catch (err) {
-      setError("更新位置失敗: " + err.message);
+      console.error("Update failed", err);
     }
   };
 
@@ -111,85 +120,59 @@ const SEAT = ({API_BASE}) => {
         {/* 左側：表單 */}
         <div className="form-section">
           <form onSubmit={handleSubmit} className="item-form">
-            <h2>{editingSeat ? 'Edit Seat' : 'Add New Seat'}</h2>
-            
             <div className="form-group">
-              <label>Seat Name:</label>
-              <input
-                type="text"
-                value={editingSeat ? editingSeat.SEAT_NAME : newSeat.seatName}
-                onChange={(e) => editingSeat 
-                  ? setEditingSeat({ ...editingSeat, SEAT_NAME: e.target.value })
-                  : setNewSeat({ ...newSeat, seatName: e.target.value })
-                }
-                required
-              />
+              <label>座位名稱:</label>
+              <input type="text" value={editingSeat ? editingSeat.SEAT_NAME : newSeat.seatName} /* ... */ />
             </div>
-
             <div className="form-grid">
               <div className="form-group">
-                <label>X Position (px):</label>
-                <input
-                  type="number"
-                  value={editingSeat ? editingSeat.POSITION_X : newSeat.x}
-                  onChange={(e) => editingSeat 
-                    ? setEditingSeat({ ...editingSeat, POSITION_X: parseInt(e.target.value) })
-                    : setNewSeat({ ...newSeat, x: parseInt(e.target.value) })
-                  }
-                />
+                <label>X (單位):</label>
+                <input type="number" value={editingSeat ? editingSeat.POSITION_X : newSeat.x} /* ... */ />
               </div>
               <div className="form-group">
-                <label>Y Position (px):</label>
-                <input
-                  type="number"
-                  value={editingSeat ? editingSeat.POSITION_Y : newSeat.y}
-                  onChange={(e) => editingSeat 
-                    ? setEditingSeat({ ...editingSeat, POSITION_Y: parseInt(e.target.value) })
-                    : setNewSeat({ ...newSeat, y: parseInt(e.target.value) })
-                  }
-                />
+                <label>Y (單位):</label>
+                <input type="number" value={editingSeat ? editingSeat.POSITION_Y : newSeat.y} /* ... */ />
               </div>
             </div>
-
-            <div className="button-group">
-              <button type="submit" className="btn-primary">
-                {editingSeat ? 'Update' : 'Add'} Seat
-              </button>
-              {editingSeat && (
-                <button type="button" onClick={() => setEditingSeat(null)} className="btn-secondary">
-                  Cancel
-                </button>
-              )}
-            </div>
+            <button type="submit" className="btn-primary">儲存</button>
           </form>
         </div>
 
         {/* 右側：2D 平面預覽圖 */}
         <div className="preview-section">
-          <h3>2D Floor Plan (可拖動調整)</h3>
-          {/* 容器增加 onDragOver 與 onDrop */}
           <div 
-            className="floor-plan" 
-            onDragOver={handleDragOver} 
+            className="scroll-container" 
+            ref={scrollContainerRef}
+            onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
           >
-            {seats.map(seat => (
-              <div 
-                key={seat.SEAT_ID}
-                className={`seat-node ${editingSeat?.SEAT_ID === seat.SEAT_ID ? 'active' : ''}`}
-                style={{ 
-                  left: `${seat.POSITION_X}px`, 
-                  top: `${seat.POSITION_Y}px` 
-                }}
-                draggable="true" // 關鍵：開啟原生拖動
-                onDragStart={(e) => handleDragStart(e, seat.SEAT_ID)}
-                onClick={() => setEditingSeat(seat)}
-              >
-                {seat.SEAT_NAME}
-              </div>
-            ))}
+            <div 
+              className="floor-plan-grid" 
+              style={{ 
+                width: `${MAX_UNITS * UNIT_SIZE}px`, 
+                height: `${MAX_UNITS * UNIT_SIZE}px` 
+              }}
+            >
+              {seats.map(seat => (
+                <div 
+                  key={seat.SEAT_ID}
+                  className={`seat-unit ${editingSeat?.SEAT_ID === seat.SEAT_ID ? 'active' : ''}`}
+                  draggable="true"
+                  onDragStart={(e) => handleDragStart(e, seat.SEAT_ID)}
+                  style={{ 
+                    left: `${seat.POSITION_X * UNIT_SIZE}px`, 
+                    top: `${seat.POSITION_Y * UNIT_SIZE}px`,
+                    width: `${UNIT_SIZE}px`,
+                    height: `${UNIT_SIZE}px`
+                  }}
+                  onClick={() => setEditingSeat(seat)}
+                >
+                  {seat.SEAT_NAME}
+                </div>
+              ))}
+            </div>
           </div>
-          <p className="hint">💡 直接拖動方塊可更改位置</p>
+          <p className="hint">使用滾輪或拖動滾動條查看 256x256 區域 (網格大小: {UNIT_SIZE}px)</p>
         </div>
       </div>
 
