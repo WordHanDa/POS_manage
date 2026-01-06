@@ -279,3 +279,82 @@ select {
   width: 100%;
   border: 1px solid #ccc;
 }
+
+/* --- RWD 響應式優化 --- */
+
+/* 針對平板以下螢幕 (768px) */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  /* 讓表單從兩欄變為一欄 */
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  /* 讓表格在小螢幕上可以橫向滾動，防止破版 */
+  .item-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 篩選欄位改為垂直排列 */
+  .filter-panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-group input[type="date"],
+  .filter-group select {
+    width: 100%;
+  }
+
+  /* 明細區塊改為彈性佈局 */
+  .detail-list-header {
+    display: none; /* 手機版隱藏表頭，改用標籤顯示 */
+  }
+
+  .detail-item-row {
+    grid-template-columns: 1fr; /* 改為單欄顯示 */
+    gap: 5px;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* 透過虛擬元素增加手機版的欄位說明 */
+  .detail-item-row > div::before {
+    content: attr(data-label); /* 需在 HTML 補上 data-label 屬性 */
+    font-weight: bold;
+    margin-right: 10px;
+    display: inline-block;
+    width: 80px;
+    color: #888;
+  }
+}
+
+/* 針對超小手機螢幕 (480px) */
+@media (max-width: 480px) {
+  .summary-cards {
+    grid-template-columns: 1fr; /* 統計卡片改為一格一列 */
+  }
+
+  .card-value {
+    font-size: 1.2rem;
+  }
+
+  .btn-primary, .btn-secondary {
+    width: 100%; /* 按鈕變滿版方便點擊 */
+    margin-left: 0;
+    margin-top: 10px;
+  }
+}
