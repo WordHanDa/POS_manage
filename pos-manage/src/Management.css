@@ -403,6 +403,7 @@ select {
 /* 佈局容器 */
 .management-layout {
   display: flex;
+  flex-direction: column;
   gap: 20px;
   margin-bottom: 30px;
 }
