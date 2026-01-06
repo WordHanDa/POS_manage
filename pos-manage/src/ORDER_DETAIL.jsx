@@ -6,9 +6,13 @@ const ORDER_DETAIL = ({ API_BASE }) => {
   const { orderId } = useParams();
   const [details, setDetails] = useState([]);
   const [items, setItems] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([]); // 新增：儲存過濾後的品項
-  const [types, setTypes] = useState([]); // 新增：儲存所有的 Type 種類
-  const [selectedType, setSelectedType] = useState(''); // 新增：目前的過濾類別
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [selectedType, setSelectedType] = useState('');
+
+  // 狀態：管理正在編輯折扣的明細 ID 與數值
+  const [editingDiscountId, setEditingDiscountId] = useState(null);
+  const [tempDiscount, setTempDiscount] = useState(100);
 
   const [newDetail, setNewDetail] = useState({ itemId: '', quantity: 1, discount: 100 });
   const [loading, setLoading] = useState(false);
@@ -34,9 +38,7 @@ const ORDER_DETAIL = ({ API_BASE }) => {
       if (!response.ok) throw new Error('無法載入品項列表');
       const data = await response.json();
       setItems(data);
-      setFilteredItems(data); // 初始狀態顯示全部
-
-      // 提取所有不重複的 Type
+      setFilteredItems(data);
       const uniqueTypes = [...new Set(data.map(item => item.Type).filter(t => t))];
       setTypes(uniqueTypes);
     } catch (err) {
@@ -44,7 +46,6 @@ const ORDER_DETAIL = ({ API_BASE }) => {
     }
   };
 
-  // 當選擇的 Type 改變時，更新過濾列表
   useEffect(() => {
     if (selectedType === '') {
       setFilteredItems(items);
@@ -52,7 +53,6 @@ const ORDER_DETAIL = ({ API_BASE }) => {
       const filtered = items.filter(item => item.Type === selectedType);
       setFilteredItems(filtered);
     }
-    // 重置選取的品項，避免跨類別錯誤
     setNewDetail(prev => ({ ...prev, itemId: '' }));
   }, [selectedType, items]);
 
@@ -81,6 +81,22 @@ const ORDER_DETAIL = ({ API_BASE }) => {
     }
   };
 
+  // 修改折扣的 API 請求 (通常後端需提供更新明細的路由)
+  const handleUpdateDiscount = async (detailId) => {
+    try {
+      const response = await fetch(`${API_BASE}/ORDER_DETAIL/${detailId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ saleInPercent: parseInt(tempDiscount) })
+      });
+      if (!response.ok) throw new Error('修改折扣失敗');
+      setEditingDiscountId(null);
+      fetchDetails();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const deleteDetail = async (id) => {
     if (!window.confirm('確定移除此項目？')) return;
     try {
@@ -103,22 +119,17 @@ const ORDER_DETAIL = ({ API_BASE }) => {
       <h1>訂單詳情 # {orderId}</h1>
       {error && <div className="error-message">⚠️ {error}</div>}
 
+      {/* 表單區塊 */}
       <form onSubmit={addDetail} className="item-form">
         <h3>新增品項</h3>
         <div className="form-grid">
-          {/* 新增：Type 過濾選單 */}
           <div className="form-group">
             <label>類別:</label>
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-            >
+            <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
               <option value="">-- 顯示全部類別 --</option>
               {types.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
-
-          {/* 品項選單 (受過濾影響) */}
           <div className="form-group">
             <label>選擇品項:</label>
             <select
@@ -134,12 +145,10 @@ const ORDER_DETAIL = ({ API_BASE }) => {
               ))}
             </select>
           </div>
-
           <div className="form-group">
             <label>數量:</label>
             <input type="number" min="1" value={newDetail.quantity} onChange={(e) => setNewDetail({ ...newDetail, quantity: e.target.value })} required />
           </div>
-
           <div className="form-group">
             <label>折扣 (%):</label>
             <input type="number" min="0" max="100" value={newDetail.discount} onChange={(e) => setNewDetail({ ...newDetail, discount: e.target.value })} />
@@ -158,8 +167,7 @@ const ORDER_DETAIL = ({ API_BASE }) => {
               <th>數量</th>
               <th>折扣</th>
               <th>小計</th>
-              <th>狀態</th>
-              <th>操作</th>
+              <th>狀態/操作</th>
             </tr>
           </thead>
           <tbody>
@@ -168,15 +176,52 @@ const ORDER_DETAIL = ({ API_BASE }) => {
                 <td><strong>{d.ITEM_NAME}</strong></td>
                 <td>${Number(d.PRICE_AT_SALE).toFixed(2)}</td>
                 <td>{d.QUANTITY}</td>
-                <td><span className="type-badge">{d.SALE_IN_PERCENT}%</span></td>
+                <td>
+                  {editingDiscountId === d.DETAIL_ID ? (
+                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                      <input
+                        type="number"
+                        style={{ width: '60px', padding: '4px' }}
+                        value={tempDiscount}
+                        onChange={(e) => setTempDiscount(e.target.value)}
+                      />
+                      <button className="btn-primary" onClick={() => handleUpdateDiscount(d.DETAIL_ID)} style={{ padding: '2px 8px', margin: 0 }}>✓</button>
+                      <button className="btn-secondary" onClick={() => setEditingDiscountId(null)} style={{ padding: '2px 8px', margin: 0 }}>✕</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span className="type-badge">{d.SALE_IN_PERCENT}%</span>
+                      {/* 如果尚未出單，則顯示明確的修改按鈕 */}
+                      {d.SEND === 0 && (
+                        <button
+                          onClick={() => {
+                            setEditingDiscountId(d.DETAIL_ID);
+                            setTempDiscount(d.SALE_IN_PERCENT);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: '1px solid #888',
+                            color: '#888',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '0.7em',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          修改
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </td>
+
                 <td><strong>${(d.PRICE_AT_SALE * d.QUANTITY * (d.SALE_IN_PERCENT / 100)).toFixed(2)}</strong></td>
                 <td>
-                  {/* 合併後的狀態與出單按鈕 */}
                   <button
                     className="btn-primary"
-                    disabled={d.SEND === 1} // 如果 SEND 為 1 則禁用按鈕
+                    disabled={d.SEND === 1}
                     style={{
-                      backgroundColor: d.SEND === 1 ? '#b7eb8f' : '#faad14', // 已出單顯示淺綠，未出單顯示橘色
+                      backgroundColor: d.SEND === 1 ? '#b7eb8f' : '#faad14',
                       borderColor: d.SEND === 1 ? '#b7eb8f' : '#faad14',
                       cursor: d.SEND === 1 ? 'not-allowed' : 'pointer',
                       color: d.SEND === 1 ? '#52c41a' : 'white',
@@ -191,29 +236,22 @@ const ORDER_DETAIL = ({ API_BASE }) => {
                           body: JSON.stringify({ sendStatus: 1 })
                         });
                         if (!response.ok) throw new Error('更新狀態失敗');
-                        fetchDetails(); // 重新整理明細列表以更新主表狀態
-                      } catch (err) {
-                        alert(err.message);
-                      }
+                        fetchDetails();
+                      } catch (err) { alert(err.message); }
                     }}
                   >
                     {d.SEND === 1 ? '已出單' : '點擊出單'}
                   </button>
 
-                  {/* 只有在尚未出單的情況下才允許移除，避免帳務混亂 */}
                   {d.SEND === 0 && (
-                    <button
-                      onClick={() => deleteDetail(d.DETAIL_ID)}
-                      className="btn-delete"
-                      style={{ marginLeft: '10px' }}
-                    >
+                    <button onClick={() => deleteDetail(d.DETAIL_ID)} className="btn-delete" style={{ marginLeft: '10px' }}>
                       移除
                     </button>
                   )}
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#999' }}>目前無明細</td></tr>
+              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px', color: '#999' }}>目前無明細</td></tr>
             )}
           </tbody>
         </table>
