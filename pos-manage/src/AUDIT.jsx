@@ -162,7 +162,7 @@ const AUDIT = ({ API_BASE }) => {
                     <td colSpan="5" className="detail-container-cell">
                       <div className="audit-detail-card" style={{ background: '#f9f9f9', padding: '20px', borderRadius: '8px', border: '1px solid #ddd' }}>
                         <div className="detail-header" style={{ marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-                          <h4 style={{ margin: 0 }}>單號 #{order.ORDER_ID} 詳細品項</h4>
+                          <h4 style={{ margin: 0 }}>單號 #{order.ORDER_ID}</h4>
                           <span style={{ fontSize: '0.9em', color: '#666' }}>結帳狀態：{order.settle === 1 ? '✅ 已結清' : '❌ 未結清'}</span>
                         </div>
 
@@ -174,6 +174,7 @@ const AUDIT = ({ API_BASE }) => {
                                   <th style={{ textAlign: 'left', padding: '8px' }}>品項名稱</th>
                                   <th>單價</th>
                                   <th>數量</th>
+                                  <th>折扣％</th>
                                   <th>小計</th>
                                 </tr>
                               </thead>
@@ -183,8 +184,9 @@ const AUDIT = ({ API_BASE }) => {
                                     <td style={{ padding: '8px' }}>{d.ITEM_NAME}</td>
                                     <td style={{ textAlign: 'center' }}>${Number(d.PRICE_AT_SALE).toFixed(0)}</td>
                                     <td style={{ textAlign: 'center' }}>x {d.QUANTITY}</td>
+                                    <td style={{ textAlign: 'center' }}>{d.SALE_IN_PERCENT}%</td>
                                     <td style={{ textAlign: 'right', padding: '8px' }}>
-                                      ${(d.PRICE_AT_SALE * d.QUANTITY).toFixed(2)}
+                                      ${(d.PRICE_AT_SALE * d.QUANTITY * d.SALE_IN_PERCENT * 0.01).toFixed(2)}
                                     </td>
                                   </tr>
                                 ))}
@@ -193,26 +195,22 @@ const AUDIT = ({ API_BASE }) => {
 
                             <div className="detail-footer">
                               {/* 左側備註區 */}
-                                <strong>訂單備註：</strong> {order.NOTE || '無備註'}
+                              <div className="footer-notes">
+                                <strong>訂單備註：</strong><br />{order.NOTE || '無備註'}
+                              </div>
 
                               {/* 右側金額計算區 */}
                               <div className="footer-total">
                                 <div className='footer-subtotal'>
-                                  品項小計： <strong>${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</strong>
+                                  品項小計：${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}
                                 </div>
-
+                                <span></span>
                                 <div className='footer-discount'>
-                                  折扣讓利 (DISCOUNT)： <strong>-${Number(order.DISCOUNT).toFixed(2)}</strong>
+                                  折扣： -${Number(order.DISCOUNT).toFixed(2)}
                                 </div>
 
                                 {/* 最終實收金額線條與強調 */}
-                                <div style={{
-                                  fontSize: '1.2em',
-                                  borderTop: '2px solid #eee',
-                                  marginTop: '8px',
-                                  paddingTop: '8px',
-                                  color: '#d9480f'
-                                }}>
+                                <div>
                                   <span>應付實收總額：</span>
                                   <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
                                 </div>

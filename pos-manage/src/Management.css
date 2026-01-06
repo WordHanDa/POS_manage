@@ -180,7 +180,6 @@
 
 /* 展開區塊容器 */
 .detail-container-cell {
-  background-color: #f8f9fa !important;
   padding: 15px !important;
 }
 
@@ -250,6 +249,9 @@
   font-weight: bold;
   color: #2b8a3e; /* 綠色代表金額 */
 }
+.detail-body {
+  color: #757575;
+}
 
 /* 明細底部 */
 .detail-footer {
@@ -258,7 +260,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #000;
+  color: #747474;
+}
+.footer-notes {
+  font-size: 0.95rem;
+  text-align: left;
+  margin-bottom: auto;
 }
 
 .footer-total {
@@ -274,6 +281,14 @@
   color: #d9480f; /* 橘紅色強調總額 */
 }
 
+.footer-subtotal {
+  text-align: right;
+  font-size: small;
+}
+.footer-discount {
+  text-align: right;
+  margin-top: 5px;
+}
 select {
   padding: 8px;
   border-radius: 4px;
@@ -331,7 +346,6 @@ select {
     padding: 15px;
     border-bottom: 1px solid #eee;
   }
-
   /* 透過虛擬元素增加手機版的欄位說明 */
   .detail-item-row > div::before {
     content: attr(data-label); /* 需在 HTML 補上 data-label 屬性 */
