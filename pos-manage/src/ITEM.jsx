@@ -136,21 +136,26 @@ const ITEM = ({ API_BASE }) => {
     return sortConfig.direction === 'asc' ? '↑' : '↓';
   };
 
+  const handleImgError = (e) => {
+    // 當圖片加載失敗時，替換為預設圖片路徑
+    e.target.src = "https://posfront-psi.vercel.app/placeholder.png";
+  };
+
   return (
     <div className="container">
       <h1>品項管理</h1>
       {error && <div className="error-message">{error}</div>}
-      
+
       <form onSubmit={handleSubmit} className="item-form">
         <h2>{editingItem ? '編輯品項' : '新增品項'}</h2>
-        
+
         <div className="form-grid">
           <div className="form-group">
             <label>名稱: </label>
             <input
               type="text"
               value={editingItem ? editingItem.ITEM_NAME : newItem.name}
-              onChange={(e) => editingItem 
+              onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, ITEM_NAME: e.target.value })
                 : setNewItem({ ...newItem, name: e.target.value })
               }
@@ -163,20 +168,20 @@ const ITEM = ({ API_BASE }) => {
               type="number"
               step="0.01"
               value={editingItem ? editingItem.ITEM_PRICE : newItem.price}
-              onChange={(e) => editingItem 
+              onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, ITEM_PRICE: e.target.value })
                 : setNewItem({ ...newItem, price: e.target.value })
               }
               required
             />
           </div>
-          
+
           {/* --- 修改：將 Type 改為 Select --- */}
           <div className="form-group">
             <label>種類: </label>
             <select
               value={editingItem ? editingItem.Type : newItem.type}
-              onChange={(e) => editingItem 
+              onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, Type: e.target.value })
                 : setNewItem({ ...newItem, type: e.target.value })
               }
@@ -195,7 +200,7 @@ const ITEM = ({ API_BASE }) => {
             <input
               type="text"
               value={editingItem ? editingItem.PICTURE_URL : newItem.pictureUrl}
-              onChange={(e) => editingItem 
+              onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, PICTURE_URL: e.target.value })
                 : setNewItem({ ...newItem, pictureUrl: e.target.value })
               }
@@ -208,7 +213,7 @@ const ITEM = ({ API_BASE }) => {
             <label>描述: </label>
             <textarea
               value={editingItem ? editingItem.Description : newItem.description}
-              onChange={(e) => editingItem 
+              onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, Description: e.target.value })
                 : setNewItem({ ...newItem, description: e.target.value })
               }
@@ -240,7 +245,12 @@ const ITEM = ({ API_BASE }) => {
             {sortedItems.map(item => (
               <tr key={item.ITEM_ID}>
                 <td>{item.ITEM_ID}</td>
-                <td>{item.PICTURE_URL ? <img src={item.PICTURE_URL} alt={item.ITEM_NAME} className="item-thumbnail" /> : 'No Image'}</td>
+                <td>{item.PICTURE_URL ? <img
+                  src={item.PICTURE_URL || "https://posfront-psi.vercel.app/placeholder.png"}
+                  alt={item.ITEM_NAME}
+                  className="item-thumbnail"
+                  onError={handleImgError} // 核心：失敗時觸發
+                /> : <span>No Image</span>}</td>
                 <td>{item.ITEM_NAME}</td>
                 <td><span className="type-badge">{item.Type}</span></td>
                 <td>${item.ITEM_PRICE}</td>
