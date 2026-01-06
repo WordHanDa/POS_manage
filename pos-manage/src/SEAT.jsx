@@ -138,7 +138,7 @@ const SEAT = ({ API_BASE }) => {
 
   return (
     <div className="container" style={{ maxWidth: '1000px' }}>
-      <h1>SEAT Management (網格單位制)</h1>
+      <h1>座位管理</h1>
       
       {error && <div className="error-message">{error}</div>}
 
@@ -238,7 +238,7 @@ const SEAT = ({ API_BASE }) => {
               ))}
             </div>
           </div>
-          <p className="hint">💡 可直接拖動藍色方塊，放開後自動對齊網格並儲存。</p>
+          <p className="hint">可直接拖動藍色方塊，放開後自動對齊網格並儲存。</p>
         </div>
       </div>
 
