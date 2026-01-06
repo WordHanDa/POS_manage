@@ -3,11 +3,46 @@ import './Management.css';
 
 const SEAT = ({API_BASE}) => {
   const [seats, setSeats] = useState([]);
-  // 初始化加入 x, y 座標
   const [newSeat, setNewSeat] = useState({ seatName: '', x: 0, y: 0 });
   const [editingSeat, setEditingSeat] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const handleDragStart = (e, seatId) => {
+    e.dataTransfer.setData("seatId", seatId);
+  };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    const seatId = e.dataTransfer.getData("seatId");
+    const container = e.currentTarget.getBoundingClientRect();
+    
+    // 計算相對座標（相對於 floor-plan 容器）
+    // 減去容器的左/上偏移量，並稍微修正讓滑鼠位於點位中心
+    const newX = Math.round(e.clientX - container.left);
+    const newY = Math.round(e.clientY - container.top);
+
+    const seatToUpdate = seats.find(s => s.SEAT_ID === parseInt(seatId));
+    if (!seatToUpdate) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/SEAT/${seatId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          seatName: seatToUpdate.SEAT_NAME, 
+          x: newX, 
+          y: newY 
+        })
+      });
+      if (!response.ok) throw new Error('Update position failed');
+      fetchSeats(); // 重新整理列表以獲取新位置
+    } catch (err) {
+      setError("更新位置失敗: " + err.message);
+    }
+  };
 
   const fetchSeats = async () => {
     setLoading(true);
@@ -131,8 +166,13 @@ const SEAT = ({API_BASE}) => {
 
         {/* 右側：2D 平面預覽圖 */}
         <div className="preview-section">
-          <h3>2D Floor Plan Preview</h3>
-          <div className="floor-plan">
+          <h3>2D Floor Plan (可拖動調整)</h3>
+          {/* 容器增加 onDragOver 與 onDrop */}
+          <div 
+            className="floor-plan" 
+            onDragOver={handleDragOver} 
+            onDrop={handleDrop}
+          >
             {seats.map(seat => (
               <div 
                 key={seat.SEAT_ID}
@@ -141,13 +181,15 @@ const SEAT = ({API_BASE}) => {
                   left: `${seat.POSITION_X}px`, 
                   top: `${seat.POSITION_Y}px` 
                 }}
+                draggable="true" // 關鍵：開啟原生拖動
+                onDragStart={(e) => handleDragStart(e, seat.SEAT_ID)}
                 onClick={() => setEditingSeat(seat)}
               >
                 {seat.SEAT_NAME}
               </div>
             ))}
           </div>
-          <p className="hint">點擊點位可直接編輯位置</p>
+          <p className="hint">💡 直接拖動方塊可更改位置</p>
         </div>
       </div>
 

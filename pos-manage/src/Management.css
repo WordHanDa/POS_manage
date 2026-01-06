@@ -466,3 +466,20 @@ select {
   color: #666;
   margin-top: 10px;
 }
+
+/* 讓正在拖動的元素看起來半透明 */
+.seat-node:active {
+  cursor: grabbing;
+  opacity: 0.5;
+}
+
+/* 讓 floor-plan 容器在拖動經過時有反應 */
+.floor-plan:active {
+  border: 2px solid #007bff;
+}
+
+.seat-node {
+  /* 確保點位文字不可被選取，避免拖動時選到文字 */
+  user-select: none;
+  -webkit-user-drag: element; /* 改善 Webkit 瀏覽器拖動體驗 */
+}
