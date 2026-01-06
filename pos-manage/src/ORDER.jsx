@@ -10,34 +10,35 @@ const ORDER = ({ API_BASE }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 取得 UTC+8 當天日期字串 (YYYY-MM-DD)
-  const getTodayUTC8 = () => {
-    return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Taipei' }).format(new Date());
-  };
+  // 計算全店未結清總數 (顯示於統計區)
+  const unSettleCount = orders.filter(o => o.settle !== 1).length;
 
-  // 計算全店未結清總數
-  const unSettleCount = orders.filter(o => o.SETTLE !== 1).length;
-
-  // 1. 取得所有訂單並按 ID 分組
+  // 1. 取得所有訂單
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const today = getTodayUTC8();
-      const response = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${today}`);
-      if (!response.ok) throw new Error('無法取得訂單資料');
+      // 注意：確認你呼叫的是哪個 API，如果是管理頁面建議改用 /ORDER 
+      // 但若要看到品項明細，則維持 /REVENUE_DETAILS_BY_DATE
+      const response = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${new Date().toISOString().split('T')[0]}`);
+      if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
 
+      // --- 核心修改：按 ORDER_ID 分組 ---
       const groupedOrders = data.reduce((acc, current) => {
         const existingOrder = acc.find(o => o.ORDER_ID === current.ORDER_ID);
+
         if (existingOrder) {
+          // 如果訂單已存在，將品項加入該訂單的 items 陣列中
           existingOrder.items.push({
             name: current.ITEM_NAME,
             qty: current.QUANTITY,
             price: current.PRICE_AT_SALE,
-            note: current.ORDER_NOTE
+            note: current.NOTE // 這是品項備註
           });
+          // 累加總金額
           existingOrder.ORDER_MOUNT += (current.PRICE_AT_SALE * current.QUANTITY);
         } else {
+          // 如果是新訂單，建立新的物件結構
           acc.push({
             ...current,
             ORDER_MOUNT: current.PRICE_AT_SALE * current.QUANTITY,
@@ -45,7 +46,7 @@ const ORDER = ({ API_BASE }) => {
               name: current.ITEM_NAME,
               qty: current.QUANTITY,
               price: current.PRICE_AT_SALE,
-              note: current.ORDER_NOTE
+              note: current.NOTE
             }]
           });
         }
@@ -60,24 +61,25 @@ const ORDER = ({ API_BASE }) => {
     }
   };
 
-  // 2. 取得座位即時狀態
+  // 2. 取得座位即時狀態 (包含未結清筆數與金額)
   const fetchSeats = async () => {
     try {
       const response = await fetch(`${API_BASE}/SEAT_STATUS`);
-      if (!response.ok) throw new Error('無法取得座位狀態');
+      if (!response.ok) throw new Error('Failed to fetch seats');
       const data = await response.json();
       setSeats(data);
     } catch (err) {
-      console.error("座位資訊讀取錯誤:", err);
+      console.error("Error fetching seats:", err);
     }
   };
 
+  // 核心邏輯：執行任何變動後，同時更新兩個資料來源
   const refreshData = () => {
     fetchOrders();
     fetchSeats();
   };
 
-  // 3. 提交表單 (新增/編輯)
+  // 3. 提交表單 (新增訂單或修改備註)
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isEditing = !!editingOrder;
@@ -100,26 +102,29 @@ const ORDER = ({ API_BASE }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!response.ok) throw new Error('操作失敗');
+      if (!response.ok) throw new Error('Operation failed');
 
       setNewOrder({ seatId: '', mount: 0, note: '' });
       setEditingOrder(null);
-      refreshData();
+      refreshData(); // 成功後立即同步更新
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // 4. 結清訂單
+  // 4. 結清訂單功能 (含頁面確認)
   const settleOrder = async (id) => {
-    if (!window.confirm('確定要結清此訂單嗎？')) return;
+    if (!window.confirm('確定要結清此訂單嗎？結清後將無法更改內容。')) return;
+
     try {
       const response = await fetch(`${API_BASE}/ORDER/settle/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' }
       });
-      if (!response.ok) throw new Error('結清失敗');
-      refreshData();
+      if (!response.ok) throw new Error('Settle failed');
+
+      alert('訂單已結清！');
+      refreshData(); // 成功後立即同步更新
     } catch (err) {
       setError(err.message);
     }
@@ -130,8 +135,8 @@ const ORDER = ({ API_BASE }) => {
     if (!window.confirm('確定要刪除此訂單嗎？')) return;
     try {
       const response = await fetch(`${API_BASE}/ORDER/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('刪除失敗');
-      refreshData();
+      if (!response.ok) throw new Error('Delete failed');
+      refreshData(); // 成功後立即同步更新
     } catch (err) {
       setError(err.message);
     }
@@ -139,130 +144,152 @@ const ORDER = ({ API_BASE }) => {
 
   useEffect(() => {
     refreshData();
-    // 建議增加自動更新機制 (每 60 秒)
-    const timer = setInterval(refreshData, 60000);
-    return () => clearInterval(timer);
   }, []);
 
   return (
     <div className="container">
-      <header className="audit-header">
-        <h1>訂單管理系統</h1>
-        <div className="summary-cards">
-          <div className="card">
-            <h3>待結清筆數</h3>
-            <p className="card-value" style={{ color: '#f5222d' }}>{unSettleCount} 筆</p>
+      <h1>訂單管理 (ORDER)</h1>
+
+      {/* 統計摘要 */}
+      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ffe58f', borderRadius: '8px' }}>
+        <strong>即時統計：</strong>
+        目前店內有 <span style={{ color: '#f5222d', fontSize: '1.2em', fontWeight: 'bold' }}>{unSettleCount}</span> 筆訂單尚未結清。
+      </div>
+
+      {error && <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+
+      {/* 新增/編輯 表單 */}
+      <form onSubmit={handleSubmit} className="item-form">
+        <h2>{editingOrder ? '編輯訂單備註' : '快速建立新訂單'}</h2>
+
+        <div className="form-group">
+          <label>選擇座位 (即時桌況):</label>
+          <select
+            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+            value={editingOrder ? editingOrder.SEAT_ID : newOrder.seatId}
+            onChange={(e) => editingOrder
+              ? setEditingOrder({ ...editingOrder, SEAT_ID: e.target.value })
+              : setNewOrder({ ...newOrder, seatId: e.target.value })
+            }
+            required
+          >
+            <option value="">-- 請選擇座位 --</option>
+            {seats.map(seat => {
+              const count = seat.active_orders || 0;
+              const amount = Number(seat.current_total || 0).toFixed(0);
+              const statusText = count > 0 ? `(已有 ${count} 筆未結) $${amount}` : '(空閒)';
+
+              return (
+                <option key={seat.SEAT_ID} value={seat.SEAT_ID}>
+                  {seat.SEAT_NAME} {statusText}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        <div className="description-area" style={{ marginTop: '15px' }}>
+          <div className="form-group">
+            <label>備註:</label>
+            <textarea
+              value={editingOrder ? editingOrder.NOTE : newOrder.note}
+              onChange={(e) => editingOrder
+                ? setEditingOrder({ ...editingOrder, NOTE: e.target.value })
+                : setNewOrder({ ...newOrder, note: e.target.value })
+              }
+              placeholder="輸入備註（如：少鹽、加辣...）"
+            />
           </div>
         </div>
-      </header>
 
-      {error && (
-        <div className="error-message" style={{ background: '#fff2f0', border: '1px solid #ffccc7', padding: '10px', borderRadius: '4px', color: '#ff4d4f', marginBottom: '20px' }}>
-          <strong>錯誤：</strong> {error}
-          <button onClick={() => { setError(null); refreshData(); }} style={{ marginLeft: '10px' }}>重試</button>
-        </div>
-      )}
-
-      {/* 表單區塊 */}
-      <div className="filter-panel" style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <form onSubmit={handleSubmit}>
-          <h3 style={{ marginTop: 0 }}>{editingOrder ? `正在編輯訂單 #${editingOrder.ORDER_ID}` : '快速開單'}</h3>
-          <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <label style={{ display: 'block', marginBottom: '5px' }}>選擇座位：</label>
-              <select
-                style={{ width: '100%', padding: '10px' }}
-                value={editingOrder ? editingOrder.SEAT_ID : newOrder.seatId}
-                onChange={(e) => editingOrder
-                  ? setEditingOrder({ ...editingOrder, SEAT_ID: e.target.value })
-                  : setNewOrder({ ...newOrder, seatId: e.target.value })
-                }
-                required
-              >
-                <option value="">-- 選擇桌號 --</option>
-                {seats.map(seat => (
-                  <option key={seat.SEAT_ID} value={seat.SEAT_ID}>
-                    {seat.SEAT_NAME} {seat.active_orders > 0 ? `(${seat.active_orders}單未結)` : '(空)'}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div style={{ flex: 2, minWidth: '250px' }}>
-              <label style={{ display: 'block', marginBottom: '5px' }}>備註：</label>
-              <input
-                type="text"
-                style={{ width: '100%', padding: '10px' }}
-                value={editingOrder ? editingOrder.NOTE : newOrder.note}
-                onChange={(e) => editingOrder
-                  ? setEditingOrder({ ...editingOrder, NOTE: e.target.value })
-                  : setNewOrder({ ...newOrder, note: e.target.value })
-                }
-                placeholder="例如：少冰、全糖"
-              />
-            </div>
-            <button type="submit" className="btn-primary" style={{ height: '42px', padding: '0 30px' }}>
-              {editingOrder ? '更新' : '開單'}
+        <div className="button-group">
+          <button type="submit" className="btn-primary">
+            {editingOrder ? '儲存變更' : '建立空訂單'}
+          </button>
+          {editingOrder && (
+            <button type="button" onClick={() => setEditingOrder(null)} className="btn-secondary">
+              取消
             </button>
-            {editingOrder && <button type="button" onClick={() => setEditingOrder(null)} className="btn-secondary">取消</button>}
-          </div>
-        </form>
-      </div>
+          )}
+        </div>
+      </form>
 
-      {/* 清單表格 */}
-      <div style={{ marginTop: '30px' }}>
-        {loading && orders.length === 0 ? <p>正在讀取資料庫...</p> : (
-          <table className="item-table">
-            <thead>
-              <tr>
-                <th>單號</th>
-                <th>桌號</th>
-                <th>狀態</th>
-                <th>金額</th>
-                <th>時間</th>
-                <th>備註</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map(order => {
-                const isSettled = order.SETTLE === 1;
-                return (
-                  <tr key={order.ORDER_ID} style={{ backgroundColor: isSettled ? '#f5f5f5' : '#fff' }}>
-                    <td>#{order.ORDER_ID}</td>
-                    <td><span className="type-badge" style={{ backgroundColor: '#1890ff' }}>{order.SEAT_NAME}</span></td>
-                    <td>
-                      {isSettled ? (
-                        <span style={{ color: '#8c8c8c' }}>● 已結清</span>
-                      ) : (
-                        <span style={{ color: order.ORDER_SEND === 1 ? '#52c41a' : '#f5222d', fontWeight: 'bold' }}>
-                          {order.ORDER_SEND === 1 ? '● 已送餐' : '○ 準備中'}
-                        </span>
-                      )}
-                    </td>
-                    <td><strong style={{ color: '#333' }}>${Number(order.ORDER_MOUNT).toFixed(0)}</strong></td>
-                    <td style={{ fontSize: '0.85em', color: '#666' }}>
-                      {new Date(order.ORDER_DATE).toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                    <td>{order.NOTE || '-'}</td>
-                    <td>
-                      <Link to={`/ORDER/${order.ORDER_ID}`} className="btn-primary" style={{ textDecoration: 'none', padding: '5px 10px', fontSize: '0.9em' }}>明細</Link>
-                      {!isSettled && (
-                        <>
-                          <button onClick={() => setEditingOrder(order)} className="btn-secondary" style={{ marginLeft: '5px' }}>改</button>
-                          <button onClick={() => settleOrder(order.ORDER_ID)} className="btn-primary" style={{ marginLeft: '5px', backgroundColor: '#faad14', borderColor: '#faad14' }}>結</button>
-                          {order.ORDER_SEND !== 1 && (
-                            <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ marginLeft: '10px' }}>刪除</button>
-                          )}
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {/* 訂單清單表格 */}
+      <h2 style={{ marginTop: '30px' }}>訂單清單</h2>
+      {loading ? <p>載入中...</p> : (
+        <table className="item-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>座位</th>
+              <th>狀態</th>
+              <th>總金額</th>
+              <th>日期</th>
+              <th>備註</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map(order => {
+              const seatObj = seats.find(s => s.SEAT_ID === order.SEAT_ID);
+              const isSettled = order.settle === 1;
+
+              return (
+                <tr key={order.ORDER_ID}>
+                  <td>{order.ORDER_ID}</td>
+                  <td>
+                    <span className="type-badge">
+                      {seatObj ? seatObj.SEAT_NAME : `ID: ${order.SEAT_ID}`}
+                    </span>
+                  </td>
+                  <td>
+                    {isSettled ? (
+                      <span className="type-badge" style={{ backgroundColor: '#8c8c8c', color: 'white' }}>
+                        已結清
+                      </span>
+                    ) : (
+                      <span className="type-badge" style={{
+                        backgroundColor: order.SEND === 1 ? '#52c41a' : '#f5222d',
+                        color: 'white'
+                      }}>
+                        {order.SEND === 1 ? '全部完成' : '製作中'}
+                      </span>
+                    )}
+                  </td>
+                  <td><strong style={{ color: '#007bff' }}>${Number(order.ORDER_MOUNT).toFixed(2)}</strong></td>
+                  <td style={{ fontSize: '0.85em' }}>{new Date(order.ORDER_DATE).toLocaleString()}</td>
+                  <td className="description-cell">{order.NOTE || '-'}</td>
+                  <td>
+                    <Link to={`/ORDER/${order.ORDER_ID}`}>
+                      <button className="btn-primary" style={{ padding: '4px 12px' }}>明細</button>
+                    </Link>
+
+                    {!isSettled && (
+                      <>
+                        <button onClick={() => setEditingOrder(order)} className="btn-secondary" style={{ padding: '4px 8px', marginLeft: '5px' }}>修改</button>
+                        <button
+                          onClick={() => settleOrder(order.ORDER_ID)}
+                          className="btn-primary"
+                          style={{ padding: '4px 8px', marginLeft: '5px', backgroundColor: '#faad14', borderColor: '#faad14' }}
+                        >
+                          結清
+                        </button>
+                      </>
+                    )}
+
+                    {/* 未結清且未完成出單才顯示刪除 */}
+                    {!isSettled && order.SEND !== 1 && (
+                      <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px', color: 'red' }}>
+                        刪除
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };
