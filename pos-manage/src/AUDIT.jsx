@@ -187,7 +187,7 @@ const AUDIT = ({ API_BASE }) => {
                 <tr className={expandedOrder === order.ORDER_ID ? 'expanded-row' : ''}>
                   <td>#{order.ORDER_ID}</td>
                   <td>{order.SEAT_NAME || order.SEAT_ID}</td>
-                  <td>{order.ORDER_DATE}</td> 
+                  <td>{new Date(order.ORDER_DATE).toLocaleString()}</td>
                   <td className="price-cell">
                     <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
                     {order.DISCOUNT > 0 && <small style={{ color: 'red', display: 'block' }}>(折 -${order.DISCOUNT})</small>}
