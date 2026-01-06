@@ -109,7 +109,7 @@ const AUDIT = ({ API_BASE }) => {
   // 篩選與排序邏輯
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      const orderDate = new Date(order.ORDER_DATE);
+      const orderDate = new Date(new Date(order.ORDER_DATE).getTime() - (8 * 60 * 60 * 1000));
       const start = startDate ? new Date(startDate) : null;
       const end = endDate ? new Date(endDate) : null;
       if (end) end.setHours(23, 59, 59, 999);
