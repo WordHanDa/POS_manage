@@ -396,8 +396,6 @@ select {
   -webkit-line-clamp: unset; /* 取消行數限制 */
   overflow: visible;       /* 顯示完整內容 */
   white-space: normal;     /* 允許正常換行 */
-  background-color: #fffbe6; /* 給展開的內容一個淡色背景區分 */
-  border: 1px solid #ffe58f;
   padding: 5px;
   border-radius: 4px;
 }
