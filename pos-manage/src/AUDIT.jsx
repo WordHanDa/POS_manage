@@ -109,7 +109,7 @@ const AUDIT = ({ API_BASE }) => {
   // 篩選與排序邏輯
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      const orderDate = new Date(new Date(order.ORDER_DATE).getTime() - (8 * 60 * 60 * 1000));
+      const orderDate = new Date(order.ORDER_DATE);
       const start = startDate ? new Date(startDate) : null;
       const end = endDate ? new Date(endDate) : null;
       if (end) end.setHours(23, 59, 59, 999);
@@ -187,7 +187,7 @@ const AUDIT = ({ API_BASE }) => {
                 <tr className={expandedOrder === order.ORDER_ID ? 'expanded-row' : ''}>
                   <td>#{order.ORDER_ID}</td>
                   <td>{order.SEAT_NAME || order.SEAT_ID}</td>
-                  <td>{new Date(order.ORDER_DATE).toLocaleString()}</td>
+                  <td>{new Date(order.ORDER_DATE).toLocaleString('zh-TW', { timeZone: 'UTC' })}</td>
                   <td className="price-cell">
                     <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
                     {order.DISCOUNT > 0 && <small style={{ color: 'red', display: 'block' }}>(折 -${order.DISCOUNT})</small>}
@@ -245,7 +245,7 @@ const AUDIT = ({ API_BASE }) => {
 
                             <div className="detail-footer">
                               <div className="footer-notes">
-                                {order.ORDER_DATE}<br />
+                                {new Date(order.ORDER_DATE).toLocaleString('zh-TW', { timeZone: 'UTC' })}<br />
                                 <strong>訂單備註：</strong><br />
                                 {order.NOTE || '無備註'}
                               </div>
