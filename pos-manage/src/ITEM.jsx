@@ -132,8 +132,8 @@ const ITEM = ({ API_BASE }) => {
 
   const sortedItems = getSortedItems();
   const getSortIcon = (key) => {
-    if (sortConfig.key !== key) return '↕️';
-    return sortConfig.direction === 'asc' ? '🔼' : '🔽';
+    if (sortConfig.key !== key) return '↕︎';
+    return sortConfig.direction === 'asc' ? '↑' : '↓';
   };
 
   return (
