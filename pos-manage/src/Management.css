@@ -359,12 +359,45 @@ select {
   }
 }
 
+@media (max-width: 768px) {
+  .description-cell {
+    max-width: 150px; /* 手機版縮小寬度限制，更依賴點擊展開 */
+  }
+  
+  .description-cell.expanded {
+    max-width: 100%; /* 展開時佔滿可用寬度 */
+  }
+}
+
+/* Management.css */
+
 .description-cell {
   max-width: 200px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;    /* 設定顯示幾行 */
-  overflow: hidden;
+  cursor: pointer;
   font-size: 0.9em;
   word-break: break-all;
+  transition: background-color 0.2s;
+  
+  /* 預設收合狀態：顯示兩行後省略 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.description-cell:hover {
+  background-color: #f0f7ff; /* 滑鼠移上去有個提示感 */
+}
+
+/* 展開狀態樣式 */
+.description-cell.expanded {
+  display: block;          /* 取消彈性盒子限制 */
+  -webkit-line-clamp: unset; /* 取消行數限制 */
+  overflow: visible;       /* 顯示完整內容 */
+  white-space: normal;     /* 允許正常換行 */
+  background-color: #fffbe6; /* 給展開的內容一個淡色背景區分 */
+  border: 1px solid #ffe58f;
+  padding: 5px;
+  border-radius: 4px;
 }

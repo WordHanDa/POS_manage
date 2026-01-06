@@ -130,6 +130,14 @@ const ITEM = ({ API_BASE }) => {
     fetchItems();
   }, []);
 
+  // 在 ITEM 組件內部，其他 useState 附近加入
+  const [expandedId, setExpandedId] = useState(null);
+
+  const toggleDescription = (id) => {
+    // 如果點擊的是已經展開的，就收起來；否則展開新的
+    setExpandedId(expandedId === id ? null : id);
+  };
+
   const sortedItems = getSortedItems();
   const getSortIcon = (key) => {
     if (sortConfig.key !== key) return '↕︎';
@@ -246,7 +254,7 @@ const ITEM = ({ API_BASE }) => {
               <tr key={item.ITEM_ID}>
                 <td>{item.ITEM_ID}</td>
                 <td>{item.PICTURE_URL ? <img
-                  src={"https://posfront-psi.vercel.app/"+item.PICTURE_URL || "https://posfront-psi.vercel.app/placeholder.png"}
+                  src={"https://posfront-psi.vercel.app/" + item.PICTURE_URL || "https://posfront-psi.vercel.app/placeholder.png"}
                   alt={item.ITEM_NAME}
                   className="item-thumbnail"
                   onError={handleImgError} // 核心：失敗時觸發
@@ -254,7 +262,13 @@ const ITEM = ({ API_BASE }) => {
                 <td>{item.ITEM_NAME}</td>
                 <td><span className="type-badge">{item.Type}</span></td>
                 <td>${item.ITEM_PRICE}</td>
-                <td className="description-cell">{item.Description}</td>
+                <td
+                  className={`description-cell ${expandedId === item.ITEM_ID ? 'expanded' : ''}`}
+                  onClick={() => toggleDescription(item.ITEM_ID)}
+                  title="點擊展開/收合"
+                >
+                  {item.Description}
+                </td>
                 <td>
                   <button onClick={() => handleEdit(item)}>編輯</button>
                   <button onClick={() => deleteItem(item.ITEM_ID)} className="btn-delete">刪除</button>
