@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import './Management.css';
 
 const REVENUE = ({ API_BASE }) => {
@@ -75,10 +76,17 @@ const REVENUE = ({ API_BASE }) => {
 
   // 輪詢 API
   useEffect(() => {
+    const socket = io(API_BASE);
     fetchRevenueDetails(selectedDate);
-    const interval = setInterval(() => fetchRevenueDetails(selectedDate), 30000);
-    return () => clearInterval(interval);
-  }, [selectedDate]);
+    socket.on('order_updated', (data) => {
+      console.log('收到更新通知:', data.message);
+      fetchRevenueDetails(selectedDate);
+    });
+    return () => {
+      socket.off('order_updated');
+      socket.disconnect();
+    };
+  }, [selectedDate, API_BASE]);
 
   // 驅動秒數跳動
   useEffect(() => {
