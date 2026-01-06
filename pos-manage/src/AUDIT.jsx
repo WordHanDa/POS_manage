@@ -234,9 +234,9 @@ const AUDIT = ({ API_BASE }) => {
                                 {orderDetails.map(d => (
                                   <tr key={d.DETAIL_ID} style={{ borderBottom: '1px solid #eee' }}>
                                     <td style={{ padding: '8px' }}>{d.ITEM_NAME}</td>
-                                    <td style={{ textAlign: 'center' }}>${Number(d.PRICE_AT_SALE).toFixed(0)}</td>
-                                    <td style={{ textAlign: 'center' }}>x {d.QUANTITY}</td>
-                                    <td style={{ textAlign: 'center' }}>{100 - d.SALE_IN_PERCENT}%</td>
+                                    <td style={{ textAlign: 'left' }}>${Number(d.PRICE_AT_SALE).toFixed(0)}</td>
+                                    <td style={{ textAlign: 'left' }}>x {d.QUANTITY}</td>
+                                    <td style={{ textAlign: 'left' }}>{d.SALE_IN_PERCENT ? `${100 - d.SALE_IN_PERCENT}%` : '-'}</td>
                                     <td style={{ textAlign: 'right', padding: '8px' }}>${(d.PRICE_AT_SALE * d.QUANTITY * d.SALE_IN_PERCENT * 0.01).toFixed(2)}</td>
                                   </tr>
                                 ))}
@@ -252,7 +252,7 @@ const AUDIT = ({ API_BASE }) => {
                                   品項小計：${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}
                                 </div>
                                 <div className='footer-discount' style={{ color: 'red', fontSize: '0.9em' }}>
-                                  折扣讓利： -${Number(order.DISCOUNT).toFixed(2)}
+                                  折扣： -${Number(order.DISCOUNT).toFixed(2)}
                                 </div>
                                 <div style={{ fontSize: '1.2em', borderTop: '1px solid #333', marginTop: '5px' }}>
                                   應付實收總額： <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
