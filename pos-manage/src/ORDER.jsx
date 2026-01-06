@@ -17,10 +17,43 @@ const ORDER = ({ API_BASE }) => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/ORDER`);
+      // 注意：確認你呼叫的是哪個 API，如果是管理頁面建議改用 /ORDER 
+      // 但若要看到品項明細，則維持 /REVENUE_DETAILS_BY_DATE
+      const response = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${new Date().toISOString().split('T')[0]}`);
       if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
-      setOrders(data);
+
+      // --- 核心修改：按 ORDER_ID 分組 ---
+      const groupedOrders = data.reduce((acc, current) => {
+        const existingOrder = acc.find(o => o.ORDER_ID === current.ORDER_ID);
+
+        if (existingOrder) {
+          // 如果訂單已存在，將品項加入該訂單的 items 陣列中
+          existingOrder.items.push({
+            name: current.ITEM_NAME,
+            qty: current.QUANTITY,
+            price: current.PRICE_AT_SALE,
+            note: current.NOTE // 這是品項備註
+          });
+          // 累加總金額
+          existingOrder.ORDER_MOUNT += (current.PRICE_AT_SALE * current.QUANTITY);
+        } else {
+          // 如果是新訂單，建立新的物件結構
+          acc.push({
+            ...current,
+            ORDER_MOUNT: current.PRICE_AT_SALE * current.QUANTITY,
+            items: [{
+              name: current.ITEM_NAME,
+              qty: current.QUANTITY,
+              price: current.PRICE_AT_SALE,
+              note: current.NOTE
+            }]
+          });
+        }
+        return acc;
+      }, []);
+
+      setOrders(groupedOrders);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -234,9 +267,9 @@ const ORDER = ({ API_BASE }) => {
                     {!isSettled && (
                       <>
                         <button onClick={() => setEditingOrder(order)} className="btn-secondary" style={{ padding: '4px 8px', marginLeft: '5px' }}>修改</button>
-                        <button 
-                          onClick={() => settleOrder(order.ORDER_ID)} 
-                          className="btn-primary" 
+                        <button
+                          onClick={() => settleOrder(order.ORDER_ID)}
+                          className="btn-primary"
                           style={{ padding: '4px 8px', marginLeft: '5px', backgroundColor: '#faad14', borderColor: '#faad14' }}
                         >
                           結清
