@@ -154,24 +154,8 @@ const ORDER = ({ API_BASE }) => {
   return (
     <div className="container">
       <header className="page-header">
-        <h1>訂單管理 (ORDER)</h1>
+        <h1>訂單管理</h1>
       </header>
-
-      {/* 新增：日期選擇器區塊 */}
-      <div className="admin-card date-filter-section" style={{ marginBottom: '20px' }}>
-        <div className="form-group">
-          <label>查詢日期：</label>
-          <input 
-            type="date" 
-            className="form-input"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-          <button onClick={refreshData} className="btn-secondary" style={{ marginLeft: '10px' }}>
-            重新整理
-          </button>
-        </div>
-      </div>
 
       <div className='context-info'>
         <strong>{selectedDate} 統計：</strong>
@@ -182,7 +166,19 @@ const ORDER = ({ API_BASE }) => {
       {error && <div className="error-message-box">⚠️ {error}</div>}
 
       <form onSubmit={handleSubmit} className="item-form admin-card">
+        
         <h2>{editingOrder ? '編輯訂單內容' : '快速建立新訂單'}</h2>
+
+        <div className="form-row date-picker-container">
+          <label>查詢日期：</label>
+          <input 
+            type="date" 
+            className="form-input"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+        </div>
+
         <div className="form-group">
           <label>選擇座位</label>
           <select

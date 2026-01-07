@@ -122,17 +122,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background: var(--black);
   border-bottom: 1px solid var(--gold-dark);
   display: flex;
-  gap: 25px;
+  justify-content: space-between; /* 確保手機版 Logo 與 按鈕分開 */
   align-items: center;
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 1000;
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
-  /* 隱藏行動裝置上的捲軸 */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  overflow-x: auto;
 }
 
 .navbar::-webkit-scrollbar {
@@ -150,6 +146,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: transparent;
   text-decoration: none;
   flex-shrink: 0;
+  z-index: 1002; /* 確保 Logo 始終可見 */
 }
 
 .nav-link {
@@ -164,6 +161,130 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .nav-link:hover,
 .nav-link.active {
   color: var(--gold);
+}
+
+/* 1. 漢堡按鈕 */
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--gold);
+  font-size: 1.8rem;
+  cursor: pointer;
+  z-index: 1002;
+  transition: transform 0.3s ease;
+}
+
+/* 2. 背景漸黑遮罩 (Overlay) */
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8); /* 深黑色 */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease;
+  z-index: 999;
+  backdrop-filter: blur(3px);
+}
+
+.menu-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    height: 70px;
+    padding: 12px 20px;
+    overflow-x: visible; /* 關閉原本的橫向捲動 */
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .nav-links-sidebar {
+    position: fixed;
+    top: 0;
+    right: -100%; /* 初始隱藏在螢幕右側外 */
+    width: 280px;
+    height: 100vh;
+    background: #000000;
+    border-left: 1px solid var(--gold-dark);
+    display: flex;
+    flex-direction: column;
+    padding-top: 80px;
+    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1001;
+  }
+
+  .nav-links-sidebar.open {
+    right: 0; /* 滑入螢幕 */
+  }
+
+  /* 選項淡入動畫邏輯 */
+  .nav-link-side {
+    color: var(--light-white);
+    text-decoration: none;
+    font-size: 1.1rem;
+    padding: 20px 30px;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid rgba(139, 115, 85, 0.1);
+    
+    /* 初始：透明且往上位移一個選項高度 */
+    opacity: 0;
+    transform: translateY(-60px); 
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  /* 開啟時：回復原位與顯示 */
+  .nav-links-sidebar.open .nav-link-side {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 桌機版維持原狀 */
+@media (min-width: 769px) {
+  .nav-links-sidebar {
+    display: flex;
+    gap: 25px;
+  }
+
+  .nav-link-side {
+    color: var(--light-white);
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+  }
+
+  .nav-link-side:hover {
+    color: var(--gold);
+  }
+
+  .menu-toggle, .menu-overlay {
+    display: none;
+  }
+}
+
+/* 桌機版維持原樣（或依需求調整） */
+@media (min-width: 769px) {
+  .nav-links-sidebar {
+    display: flex;
+    flex-direction: row;
+    gap: 25px;
+  }
+  .nav-link-side {
+    opacity: 1 !important;
+    transform: none !important;
+    color: var(--light-white);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .nav-link-side:hover { color: var(--gold); }
 }
 
 .main-container {
@@ -211,6 +332,41 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .form-row {
   display: flex;
+  margin-bottom: 10px;
+}
+
+/* 日期篩選器容器置中 */
+.date-picker-container {
+  display: flex;
+  justify-content: center;  /* 水平置中 */
+  align-items: center;      /* 垂直置中 */
+  gap: 15px;               /* 元件間距 */
+  flex-wrap: wrap;         /* 手機版自動換行 */
+}
+
+/* 移除 label 預設的 margin-bottom 並確保文字對齊 */
+.date-picker-container label {
+  margin-bottom: 0; 
+  white-space: nowrap;
+}
+
+/* 修正輸入框寬度，避免在 Flex 容器中被拉長 */
+.date-picker-container .form-input {
+  width: auto;
+  min-width: 180px;
+}
+
+/* 針對行動裝置微調 */
+@media (max-width: 768px) {
+  .date-picker-container {
+    flex-direction: column; /* 手機版改為垂直堆疊 */
+    gap: 10px;
+  }
+  
+  .date-picker-container .form-input,
+  .date-picker-container .btn-secondary {
+    width: 100%; /* 手機版寬度撐滿 */
+  }
 }
 
 .button-group {

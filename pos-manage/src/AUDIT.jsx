@@ -134,12 +134,10 @@ const AUDIT = ({ API_BASE }) => {
     }, { totalRevenue: 0, totalDiscount: 0 });
   }, [filteredOrders]);
 
-  // ... 前端邏輯保持不變 ...
-
   return (
     <div className="container audit-container">
       <header className="audit-header">
-        <h1>會計稽核管理 (Order Audit)</h1>
+        <h1>會計稽核管理</h1>
         <div className="summary-cards">
           <div className="card card-total-count">
             <h3>篩選訂單數</h3>
