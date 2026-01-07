@@ -161,7 +161,6 @@ const ORDER = ({ API_BASE }) => {
 
       <form onSubmit={handleSubmit} className="item-form admin-card">
         <h2>{editingOrder ? '編輯訂單內容' : '快速建立新訂單'}</h2>
-
         <div className="form-group">
           <label>選擇座位</label>
           <select
@@ -243,7 +242,7 @@ const ORDER = ({ API_BASE }) => {
                 <tr key={order.ORDER_ID}>
                   <td data-label="編號">{order.ORDER_ID}</td>
                   <td data-label="座位">
-                    <span className="type-badge">{seatObj ? seatObj.SEAT_NAME : order.SEAT_ID}</span>
+                    <span className="type-badge seat-badge">{seatObj ? seatObj.SEAT_NAME : order.SEAT_ID}</span>
                   </td>
                   <td data-label="狀態">
                     <span className={`type-badge ${isSettled ? 'status-badge-settled' : 'status-badge-pending'}`}>
@@ -262,7 +261,7 @@ const ORDER = ({ API_BASE }) => {
                       <>
                         <button onClick={() => setEditingOrder(order)} className="btn-secondary btn-action-sm">修改</button>
                         <button onClick={() => settleOrder(order.ORDER_ID)} className="btn-primary btn-settle btn-action-sm">結清</button>
-                        <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete-link">刪除</button>
+                        <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete">刪除</button>
                       </>
                     )}
                   </td>

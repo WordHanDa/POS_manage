@@ -92,7 +92,6 @@ const REVENUE = ({ API_BASE }) => {
       </header>
 
       <div className="revenue-filter-card">
-        <label className="filter-label">選擇日期：</label>
         <input 
           type="date" 
           className="date-picker-dark"

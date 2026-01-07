@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const UNIT_SIZE = 40; // 1單位 = 40px
-const MAX_UNITS = 24; // 您設定的最大單位數
+const MAX_UNITS = 20; // 您設定的最大單位數
 
 const SEAT = ({ API_BASE }) => {
   const [seats, setSeats] = useState([]);
@@ -39,7 +39,7 @@ const SEAT = ({ API_BASE }) => {
     // 隱藏預設拖動影像，讓操作更平滑
     const img = new Image();
     img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    e.dataTransfer.setDragImage(img, 0, 0); 
+    e.dataTransfer.setDragImage(img, 0, 0);
   };
 
   const handleDrop = async (e) => {
@@ -47,7 +47,7 @@ const SEAT = ({ API_BASE }) => {
     const seatId = e.dataTransfer.getData("seatId");
     const container = e.currentTarget;
     const rect = container.getBoundingClientRect();
-    
+
     // 計算考慮捲軸後的相對像素位置
     const clientX = e.clientX - rect.left + container.scrollLeft;
     const clientY = e.clientY - rect.top + container.scrollTop;
@@ -98,9 +98,9 @@ const SEAT = ({ API_BASE }) => {
     e.preventDefault();
     if (editingSeat) {
       await submitUpdate(
-        editingSeat.SEAT_ID, 
-        editingSeat.SEAT_NAME, 
-        editingSeat.POSITION_X, 
+        editingSeat.SEAT_ID,
+        editingSeat.SEAT_NAME,
+        editingSeat.POSITION_X,
         editingSeat.POSITION_Y
       );
     } else {
@@ -140,78 +140,80 @@ const SEAT = ({ API_BASE }) => {
       <header className="page-header">
         <h1>座位管理</h1>
       </header>
-      
+
       {error && <div className="error-message-box">⚠️ {error}</div>}
 
       <div className="seat-management-layout">
         {/* 左側：表單 */}
         <div className="form-section">
           <form onSubmit={handleSubmit} className="item-form admin-card">
-            <h2>{editingSeat ? '編輯座位' : '新增座位'}</h2>
-            <div className="form-group">
-              <label>座位名稱</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={editingSeat ? editingSeat.SEAT_NAME : newSeat.seatName} 
-                onChange={(e) => handleFieldChange('seatName', e.target.value)}
-                required 
-              />
-            </div>
-            <div className="form-grid">
+            <div className='form-seat'>
+              <h2>{editingSeat ? '編輯座位' : '新增座位'}</h2>
               <div className="form-group">
-                <label>X (單位)</label>
-                <input 
-                  type="number" 
+                <label>座位名稱</label>
+                <input
+                  type="text"
                   className="form-input"
-                  value={editingSeat ? editingSeat.POSITION_X : newSeat.x} 
-                  onChange={(e) => handleFieldChange('x', parseInt(e.target.value) || 0)}
+                  value={editingSeat ? editingSeat.SEAT_NAME : newSeat.seatName}
+                  onChange={(e) => handleFieldChange('seatName', e.target.value)}
+                  required
                 />
               </div>
-              <div className="form-group">
-                <label>Y (單位)</label>
-                <input 
-                  type="number" 
-                  className="form-input"
-                  value={editingSeat ? editingSeat.POSITION_Y : newSeat.y} 
-                  onChange={(e) => handleFieldChange('y', parseInt(e.target.value) || 0)}
-                />
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>X (單位)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={editingSeat ? editingSeat.POSITION_X : newSeat.x}
+                    onChange={(e) => handleFieldChange('x', parseInt(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Y (單位)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={editingSeat ? editingSeat.POSITION_Y : newSeat.y}
+                    onChange={(e) => handleFieldChange('y', parseInt(e.target.value) || 0)}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="button-group">
-              <button type="submit" className="btn-primary">{editingSeat ? '更新' : '儲存'}</button>
-              {editingSeat && (
-                <button type="button" onClick={() => setEditingSeat(null)} className="btn-secondary">取消</button>
-              )}
+              <div className="button-group">
+                <button type="submit" className="btn-primary">{editingSeat ? '更新' : '儲存'}</button>
+                {editingSeat && (
+                  <button type="button" onClick={() => setEditingSeat(null)} className="btn-secondary">取消</button>
+                )}
+              </div>
             </div>
           </form>
         </div>
 
         {/* 右側：2D 平面畫布 */}
         <div className="preview-section">
-          <div 
-            className="canvas-scroll-viewport" 
+          <div
+            className="canvas-scroll-viewport"
             ref={scrollContainerRef}
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
           >
-            <div 
-              className="floor-plan-grid" 
-              style={{ 
-                width: `${MAX_UNITS * UNIT_SIZE}px`, 
+            <div
+              className="floor-plan-grid"
+              style={{
+                width: `${MAX_UNITS * UNIT_SIZE}px`,
                 height: `${MAX_UNITS * UNIT_SIZE}px`,
                 backgroundSize: `${UNIT_SIZE}px ${UNIT_SIZE}px`
               }}
             >
               {seats.map(seat => (
-                <div 
+                <div
                   key={seat.SEAT_ID}
                   className={`seat-unit-box ${editingSeat?.SEAT_ID === seat.SEAT_ID ? 'is-active' : ''}`}
                   draggable="true"
                   onDragStart={(e) => handleDragStart(e, seat.SEAT_ID)}
                   onClick={() => setEditingSeat(seat)}
-                  style={{ 
-                    left: `${seat.POSITION_X * UNIT_SIZE}px`, 
+                  style={{
+                    left: `${seat.POSITION_X * UNIT_SIZE}px`,
                     top: `${seat.POSITION_Y * UNIT_SIZE}px`,
                     width: `${UNIT_SIZE}px`,
                     height: `${UNIT_SIZE}px`

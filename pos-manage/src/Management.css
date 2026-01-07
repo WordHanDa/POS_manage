@@ -38,6 +38,16 @@ body {
    ========================================== */
 
 /* 移除 iOS 上 input 和 button 的預設內陰影與圓角 */
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
 input,
 textarea,
 select,
@@ -49,9 +59,12 @@ button {
   font-family: inherit;
 }
 
+table button {
+  margin-right: 10px;
+}
+
 /* 針對 iOS 禁用自動縮放輸入框內容（通常發生在字體小於 16px 時） */
 @media screen and (max-width: 768px) {
-
   input,
   textarea,
   select {
@@ -74,7 +87,7 @@ button {
   border-radius: 3px;
 }
 
-.filter-group input[type="date"]{
+.filter-group input[type="date"] {
   background-color: transparent;
   border: 1px solid var(--gold-dark);
   padding: 8px;
@@ -85,6 +98,7 @@ button {
   font-size: 1rem;
   cursor: pointer;
 }
+
 /* 移除日期選擇器的瀏覽器預設圖示樣式 (Chrome/Safari) */
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(70%) sepia(20%) saturate(500%) hue-rotate(10deg);
@@ -164,6 +178,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* ==========================================
    4. 通用元件 (Common UI)
    ========================================== */
+
+.card-value{
+  font-size: 30px;
+}
+
 .item-form,
 .admin-card,
 .card {
@@ -186,7 +205,25 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .form-group {
   margin-bottom: 15px;
-  text-align: left;
+  text-align: center;
+}
+
+.form-row {
+  display: flex;
+}
+
+.button-group {
+  text-align: center;
+}
+
+.form-group textarea {
+  height: 100px;
+  width: 100%;
+}
+
+.form-group input,
+select {
+  width: 100%;
 }
 
 .form-group label {
@@ -200,7 +237,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .form-select,
 .form-textarea,
 .date-picker-dark {
-  width: 100%;
   padding: 10px;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--gold-dark);
@@ -230,7 +266,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .btn-delete {
   color: #f86668;
   border: 1px solid #f86668;
-  padding: 8px 15px;
+  padding: 10px 25px;
   font-weight: bold;
   cursor: pointer;
   transition: background 0.3s;
@@ -275,6 +311,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: var(--gold);
   white-space: nowrap;
 }
+.type-badge.seat-badge{
+  color: var(--light-white);
+}
 
 /* ==========================================
    5. 表格系統 (Table & RWD)
@@ -315,19 +354,23 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: var(--light-gray);
   font-size: 0.9rem;
 }
-.detail-header{
+
+.detail-header {
   margin-bottom: 20px;
   text-align: left;
 }
-.detail-footer{
+
+.detail-footer {
   margin-top: 20px;
   text-align: left;
 }
-.total-value{
+
+.total-value {
   display: inline-block;
   float: right;
 }
-.footer-notes{
+
+.footer-notes {
   margin-top: 10px;
   margin-bottom: 15px;
   color: var(--dark-gray);
@@ -341,14 +384,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 @media (max-width: 768px) {
+
   /* 預設：將一般表格轉為卡片化堆疊 */
-  .item-table thead { 
-    display: none; 
+  .item-table thead {
+    display: none;
   }
-  
-  .item-table tr { 
-    display: block; 
-    margin-bottom: 15px; 
+
+  .item-table tr {
+    display: block;
+    margin-bottom: 15px;
   }
 
   .item-table td {
@@ -362,24 +406,29 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   /* 核心修正：強制讓 detail-card 內的表格保持橫向排列 */
 
   .audit-detail-card .inner-detail-table {
-    display: table !important; /* 強制恢復表格佈局 */
+    display: table !important;
+    /* 強制恢復表格佈局 */
     margin-bottom: 0;
   }
 
   .detail-container-cell .item-table thead,
   .audit-detail-card .inner-detail-table thead {
-    display: table-header-group !important; /* 顯示表頭 */
+    display: table-header-group !important;
+    /* 顯示表頭 */
   }
 
   .detail-container-cell .item-table tr,
   .audit-detail-card .inner-detail-table tr {
-    display: table-row !important; /* 恢復列模式 */
+    display: table-row !important;
+    /* 恢復列模式 */
   }
 
   .audit-detail-card .inner-detail-table td,
   .audit-detail-card .inner-detail-table th {
-    display: table-cell !important; /* 恢復格模式 */
-    font-size: 0.85rem; /* 手機端橫向排列需縮小字體以防溢出 */
+    display: table-cell !important;
+    /* 恢復格模式 */
+    font-size: 0.85rem;
+    /* 手機端橫向排列需縮小字體以防溢出 */
     text-align: left !important;
   }
 
@@ -398,8 +447,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 
   /* 行動端輸入框字體強制 16px 防止縮放 */
-  input, select, textarea { 
-    font-size: 16px !important; 
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }
 
@@ -432,6 +483,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   gap: 30px;
   flex-wrap: wrap;
+}
+
+.item-form {
+  height: 100%;
+}
+
+.form-seat {
+  margin-top: 15%;
 }
 
 .form-section {
@@ -482,6 +541,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* 出餐順序 (REVENUE.jsx) */
+.revenue-filter-card input[type="date"] {
+  font-size: larger;
+}
+
 .row-urgent {
   border-left: 6px solid var(--error-red) !important;
 }
@@ -501,11 +564,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @keyframes blink {
   50% {
     opacity: 0.5;
+    color: #ff0000;
   }
 }
 
 .audit-detail-card {
-  
+
   background: #fff !important;
   color: #000 !important;
   padding: 40px;
@@ -535,4 +599,41 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   width: 100vw;
   background: linear-gradient(180deg, #0c0b0a 0%, var(--dark-gray) 100%);
   min-height: 100vh;
+}
+
+.pending-badge-text {
+  margin: auto;
+}
+
+.stats-badge-count {
+  color: #ddd;
+  font-size: large;
+}
+
+.revenue-filter-card {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  background: var(--dark-gray);
+  border: 1px solid var(--gold-dark);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.context-info {
+  text-align: center;
+}
+
+.description-cell {
+  max-width: 400px; /* 建議使用 px 或 rem 較穩定，10vw 在小螢幕會過窄 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer; /* 提示使用者可點擊展開 */ 
+  transition: max-width 0.3s ease;
+}
+
+.status-badge-panding {
+  color: #ddd;
+  border: 1px solid #ddd;
 }
