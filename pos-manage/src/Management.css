@@ -227,12 +227,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
   /* 選項淡入動畫邏輯 */
   .nav-link-side {
+    text-align: center;
     color: var(--light-white);
     text-decoration: none;
     font-size: 1.1rem;
-    padding: 20px 30px;
+    padding: 15px 30px;
     letter-spacing: 0.1em;
-    border-bottom: 1px solid rgba(139, 115, 85, 0.1);
     
     /* 初始：透明且往上位移一個選項高度 */
     opacity: 0;
