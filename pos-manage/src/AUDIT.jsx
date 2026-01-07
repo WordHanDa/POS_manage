@@ -189,7 +189,7 @@ const AUDIT = ({ API_BASE }) => {
                 <tr className={expandedOrder === order.ORDER_ID ? 'expanded-row' : ''}>
                   <td data-label="單號">#{order.ORDER_ID}</td>
                   <td data-label="桌號">{order.SEAT_NAME || order.SEAT_ID}</td>
-                  <td data-label="成交時間">{new Date(order.ORDER_DATE).toLocaleString('zh-TW', { timeZone: 'UTC' })}</td>
+                  <td data-label="成交時間">{new Date(order.ORDER_DATE).toLocaleDateString('sv-SE').split('T')[0]}</td>
                   <td data-label="應付總額" className="price-cell">
                     <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
                     {order.DISCOUNT > 0 && <span className="discount-tag">(折 -${order.DISCOUNT})</span>}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const Home = ({ API_BASE }) => {
     const [summary, setSummary] = useState({ revenue: 0, pending: 0, totalOrders: 0 });
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('sv-SE').split('T')[0];
 
     useEffect(() => {
         const fetchBusinessStatus = async () => {

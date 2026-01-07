@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 const ORDER = ({ API_BASE }) => {
   const [orders, setOrders] = useState([]);
   const [seats, setSeats] = useState([]);
-  // newOrder 增加 discount 欄位
+  // 預設日期為當日 (YYYY-MM-DD)
+  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('sv-SE').split('T')[0]);
   const [newOrder, setNewOrder] = useState({ seatId: '', mount: 0, note: '', discount: 0 });
   const [editingOrder, setEditingOrder] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -12,11 +13,12 @@ const ORDER = ({ API_BASE }) => {
 
   const unSettleCount = orders.filter(o => o.settle !== 1).length;
 
-  // 1. 取得所有訂單並重新計算金額
+  // 1. 修改 fetchOrders 以使用 selectedDate
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${new Date().toISOString().split('T')[0]}`);
+      // 使用狀態中的 selectedDate
+      const response = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${selectedDate}`);
       if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
 
@@ -28,7 +30,6 @@ const ORDER = ({ API_BASE }) => {
         const discountValue = Number(current.DISCOUNT || 0);
 
         if (existingOrder) {
-          // 如果有品項細項才加入 (處理 LEFT JOIN 的 null 情況)
           if (current.DETAIL_ID) {
             existingOrder.items.push({
               name: current.ITEM_NAME,
@@ -38,7 +39,6 @@ const ORDER = ({ API_BASE }) => {
             });
             existingOrder.subTotal += itemTotal;
           }
-          // 重新計算最終應付金額
           existingOrder.ORDER_MOUNT = existingOrder.subTotal - existingOrder.DISCOUNT;
         } else {
           acc.push({
@@ -81,7 +81,16 @@ const ORDER = ({ API_BASE }) => {
     fetchSeats();
   };
 
-  // 3. 提交表單 (包含 DISCOUNT)
+  // 當日期改變時，自動重新抓取訂單
+  useEffect(() => {
+    fetchOrders();
+  }, [selectedDate]);
+
+  useEffect(() => {
+    fetchSeats();
+  }, []);
+
+  // ... (handleSubmit, settleOrder, deleteOrder 保持不變)
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isEditing = !!editingOrder;
@@ -92,12 +101,12 @@ const ORDER = ({ API_BASE }) => {
       seatId: parseInt(editingOrder.SEAT_ID),
       mount: parseFloat(editingOrder.ORDER_MOUNT),
       note: editingOrder.NOTE,
-      discount: parseFloat(editingOrder.DISCOUNT || 0) // 增加折扣傳送
+      discount: parseFloat(editingOrder.DISCOUNT || 0)
     } : {
       seatId: parseInt(newOrder.seatId),
       mount: parseFloat(newOrder.mount || 0),
       note: newOrder.note,
-      discount: parseFloat(newOrder.discount || 0) // 增加折扣傳送
+      discount: parseFloat(newOrder.discount || 0)
     };
 
     try {
@@ -142,21 +151,34 @@ const ORDER = ({ API_BASE }) => {
     }
   };
 
-  useEffect(() => {
-    refreshData();
-  }, []);
-
   return (
     <div className="container">
       <header className="page-header">
         <h1>訂單管理 (ORDER)</h1>
       </header>
 
-      <div className='context-info'>
-        <strong>即時統計：</strong>
-        目前店內有 <span className="stats-badge-count">{unSettleCount}</span> 筆訂單尚未結清。
+      {/* 新增：日期選擇器區塊 */}
+      <div className="admin-card date-filter-section" style={{ marginBottom: '20px' }}>
+        <div className="form-group">
+          <label>查詢日期：</label>
+          <input 
+            type="date" 
+            className="form-input"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+          <button onClick={refreshData} className="btn-secondary" style={{ marginLeft: '10px' }}>
+            重新整理
+          </button>
+        </div>
       </div>
 
+      <div className='context-info'>
+        <strong>{selectedDate} 統計：</strong>
+        目前有 <span className="stats-badge-count">{unSettleCount}</span> 筆訂單尚未結清。
+      </div>
+
+      {/* ... 其餘 Form 與 Table 結構維持不變 ... */}
       {error && <div className="error-message-box">⚠️ {error}</div>}
 
       <form onSubmit={handleSubmit} className="item-form admin-card">
@@ -218,7 +240,7 @@ const ORDER = ({ API_BASE }) => {
         </div>
       </form>
 
-      <h2 className="list-title">今日訂單清單</h2>
+      <h2 className="list-title">{selectedDate} 訂單清單</h2>
       {loading ? <p className="loading-text">載入中...</p> : (
         <table className="item-table">
           <thead>
