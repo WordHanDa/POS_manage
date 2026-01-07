@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './Management.css';
 
 const REVENUE = ({ API_BASE }) => {
   const getTodayUTC8 = () => {
@@ -88,29 +87,27 @@ const REVENUE = ({ API_BASE }) => {
 
   return (
     <div className="container">
-      <header>
+      <header className="page-header">
         <h1>出菜清單</h1>
       </header>
 
-      <div className="item-form" style={{ marginBottom: '20px', padding: '20px', borderRadius: '8px', color: '#fff' }}>
-        <label style={{ fontWeight: 'bold', marginRight: '10px' }}>選擇日期：</label>
+      <div className="revenue-filter-card">
+        <label className="filter-label">選擇日期：</label>
         <input 
           type="date" 
+          className="date-picker-dark"
           value={selectedDate} 
           onChange={(e) => setSelectedDate(e.target.value)} 
-          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', background: '#333', color: '#fff' }}
         />
-        <span style={{ marginLeft: '20px' }}>
-          待處理項目：<strong style={{ color: '#f5222d', fontSize: '1.2em' }}>
+        <div className="pending-badge-text">
+          待處理項目：<strong className="stats-badge-count">
             {orderDetails.filter(d => d.ITEM_SEND === 0).length}
           </strong>
-        </span>
+        </div>
       </div>
 
       {loading && orderDetails.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-          <p>正在載入最新出餐順序...</p>
-        </div>
+        <div className="loading-container"><p>正在載入最新出餐順序...</p></div>
       ) : (
         <table className="item-table">
           <thead>
@@ -125,58 +122,40 @@ const REVENUE = ({ API_BASE }) => {
           <tbody>
             {orderDetails.length > 0 ? (
               orderDetails.map((item, index) => {
-                // 計算是否緊急 (超過 5 分鐘)
                 const orderDate = new Date(item.ORDER_DATE.replace('Z', ''));
                 const isUrgent = (now.getTime() - orderDate.getTime()) > 300000 && item.ITEM_SEND === 0;
+                
+                // 動態決定行類別
+                let rowClass = "row-normal";
+                if (item.ITEM_SEND === 1) rowClass = "row-done";
+                else if (isUrgent) rowClass = "row-urgent";
 
                 return (
-                  <tr
-                    key={item.DETAIL_ID}
-                    style={{
-                      borderLeft: item.ITEM_SEND === 0 
-                        ? `6px solid ${isUrgent ? '#f5222d' : '#52c41a'}` 
-                        : '6px solid #d9d9d9',
-                      background: isUrgent ? 'rgba(245, 34, 45, 0.1)' : 'transparent'
-                    }}
-                  >
-                    <td>
-                      <div style={{ fontWeight: 'bold', fontSize: '1.2em' }}>
-                        {item.ITEM_SEND === 0 ? `P${index + 1}` : 'DONE'}
-                      </div>
-                      <div style={{ 
-                        fontFamily: 'monospace', 
-                        color: isUrgent ? '#f5222d' : '#1890ff', 
-                        fontWeight: 'bold',
-                        fontSize: '1.1em'
-                      }}>
-                        {item.ITEM_SEND === 0 ? formatElapsedTime(item.ORDER_DATE) : '---'}
+                  <tr key={item.DETAIL_ID} className={rowClass}>
+                    <td data-label="狀態/時間">
+                      <div className="priority-box">
+                        <span className="priority-rank">
+                          {item.ITEM_SEND === 0 ? `P${index + 1}` : 'DONE'}
+                        </span>
+                        <span className={`timer-text ${isUrgent ? 'timer-urgent' : 'timer-normal'}`}>
+                          {item.ITEM_SEND === 0 ? formatElapsedTime(item.ORDER_DATE) : '---'}
+                        </span>
                       </div>
                     </td>
-                    <td>
-                      <span className="type-badge" style={{ padding: '6px 10px', background: '#1890ff', color: '#fff', borderRadius: '4px', fontWeight: 'bold' }}>
-                        {item.SEAT_NAME}
-                      </span>
+                    <td data-label="桌號">
+                      <span className="type-badge seat-badge">{item.SEAT_NAME}</span>
                     </td>
-                    <td>
-                      <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>{item.ITEM_NAME}</div>
-                      <div style={{ color: '#f5222d', fontWeight: 'bold' }}>x {item.QUANTITY}</div>
+                    <td data-label="品項">
+                      <div className="item-name-bold">{item.ITEM_NAME}</div>
+                      <div className="item-qty-tag">x {item.QUANTITY}</div>
                     </td>
-                    <td style={{ color: '#aaa', fontStyle: item.ORDER_NOTE ? 'normal' : 'italic' }}>
+                    <td data-label="備註" className="note-cell">
                       {item.ORDER_NOTE || '無備註'}
                     </td>
-                    <td>
+                    <td data-label="操作">
                       <button
-                        className="btn-primary"
+                        className={`btn-primary btn-kitchen-action ${item.ITEM_SEND === 1 ? 'btn-kitchen-done' : 'btn-kitchen-send'}`}
                         disabled={item.ITEM_SEND === 1}
-                        style={{
-                          padding: '10px 20px',
-                          borderRadius: '6px',
-                          border: 'none',
-                          fontWeight: 'bold',
-                          backgroundColor: item.ITEM_SEND === 1 ? '#444' : '#52c41a',
-                          color: item.ITEM_SEND === 1 ? '#888' : '#fff',
-                          cursor: item.ITEM_SEND === 1 ? 'not-allowed' : 'pointer'
-                        }}
                         onClick={() => handleItemSend(item)}
                       >
                         {item.ITEM_SEND === 1 ? '已完成' : '確認出餐'}
@@ -186,11 +165,7 @@ const REVENUE = ({ API_BASE }) => {
                 );
               })
             ) : (
-              <tr>
-                <td colSpan="5" style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
-                  目前沒有待處理項目
-                </td>
-              </tr>
+              <tr><td colSpan="5" className="empty-cell">目前沒有待處理項目</td></tr>
             )}
           </tbody>
         </table>

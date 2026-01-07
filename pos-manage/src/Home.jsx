@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './Management.css';
 
 const Home = ({ API_BASE }) => {
     const [summary, setSummary] = useState({ revenue: 0, pending: 0, totalOrders: 0 });
@@ -47,37 +46,36 @@ const Home = ({ API_BASE }) => {
 
     return (
         <div className="container">
-            <div className="item-form" style={{ marginTop: '30px' }}>
-                <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>營業狀況</h1>
-                <p style={{ textAlign: 'center', color: '#888', marginBottom: '30px' }}>今日日期：{today}</p>
+            <div className="item-form main-status-box">
+                <header className="home-header">
+                    <h1>營業狀況</h1>
+                    <p className="home-date">今日日期：{today}</p>
+                </header>
 
-                {/* 營業狀況摘要卡片 */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr 1fr',
-                    gap: '20px',
-                    marginBottom: '40px'
-                }}>
-                    <div className="status-card" style={{ background: '#f0f5ff', padding: '20px', borderRadius: '12px', textAlign: 'center', border: '1px solid #adc6ff' }}>
-                        <div style={{ color: '#1890ff', fontSize: '14px' }}>今日總營收</div>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#003a8c' }}>${summary.revenue.toLocaleString()}</div>
+                {/* 營業狀況摘要網格：透過 CSS 控制 RWD */}
+                <div className="summary-grid">
+                    {/* 營收卡片 */}
+                    <div className="status-card card-revenue">
+                        <div className="status-label">今日總營收</div>
+                        <div className="status-value">${summary.revenue.toLocaleString()}</div>
                     </div>
-                    <div className="status-card" style={{ background: '#fff7e6', padding: '20px', borderRadius: '12px', textAlign: 'center', border: '1px solid #ffd591' }}>
-                        <div style={{ color: '#fa8c16', fontSize: '14px' }}>今日訂單數</div>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#873800' }}>{summary.totalOrders} 筆</div>
+
+                    {/* 訂單卡片 */}
+                    <div className="status-card card-orders">
+                        <div className="status-label">今日訂單數</div>
+                        <div className="status-value">{summary.totalOrders} 筆</div>
                     </div>
-                    <div className="status-card" style={{ background: '#fff1f0', padding: '20px', borderRadius: '12px', textAlign: 'center', border: '1px solid #ffa39e' }}>
-                        <div style={{ color: '#f5222d', fontSize: '14px' }}>待出餐項目</div>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#820014' }}>{summary.pending} 件</div>
+
+                    {/* 待出餐卡片 */}
+                    <div className="status-card card-pending">
+                        <div className="status-label">待出餐項目</div>
+                        <div className="status-value">{summary.pending} 件</div>
                     </div>
                 </div>
 
-                {/* 功能管理選單 */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '20px'
-                }}>
+                {/* 功能管理選單：預留擴充網格 */}
+                <div className="menu-grid">
+                    {/* 未來可加入快速跳轉按鈕 */}
                 </div>
             </div>
         </div>

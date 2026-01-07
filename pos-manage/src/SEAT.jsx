@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './Management.css'; 
 
 const UNIT_SIZE = 40; // 1單位 = 40px
 const MAX_UNITS = 24; // 您設定的最大單位數
@@ -137,100 +136,85 @@ const SEAT = ({ API_BASE }) => {
   }, []);
 
   return (
-    <div className="container" style={{ maxWidth: '1000px' }}>
-      <h1>座位管理</h1>
+    <div className="container">
+      <header className="page-header">
+        <h1>座位管理</h1>
+      </header>
       
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="error-message-box">⚠️ {error}</div>}
 
-      <div className="management-layout" style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
+      <div className="seat-management-layout">
         {/* 左側：表單 */}
-        <div className="form-section" style={{ flex: '1' }}>
-          <form onSubmit={handleSubmit} className="item-form">
+        <div className="form-section">
+          <form onSubmit={handleSubmit} className="item-form admin-card">
             <h2>{editingSeat ? '編輯座位' : '新增座位'}</h2>
             <div className="form-group">
-              <label>座位名稱:</label>
+              <label>座位名稱</label>
               <input 
                 type="text" 
+                className="form-input"
                 value={editingSeat ? editingSeat.SEAT_NAME : newSeat.seatName} 
                 onChange={(e) => handleFieldChange('seatName', e.target.value)}
                 required 
               />
             </div>
-            <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="form-grid">
               <div className="form-group">
-                <label>X (單位):</label>
+                <label>X (單位)</label>
                 <input 
                   type="number" 
+                  className="form-input"
                   value={editingSeat ? editingSeat.POSITION_X : newSeat.x} 
                   onChange={(e) => handleFieldChange('x', parseInt(e.target.value) || 0)}
                 />
               </div>
               <div className="form-group">
-                <label>Y (單位):</label>
+                <label>Y (單位)</label>
                 <input 
                   type="number" 
+                  className="form-input"
                   value={editingSeat ? editingSeat.POSITION_Y : newSeat.y} 
                   onChange={(e) => handleFieldChange('y', parseInt(e.target.value) || 0)}
                 />
               </div>
             </div>
-            <div className="button-group" style={{ marginTop: '15px' }}>
+            <div className="button-group">
               <button type="submit" className="btn-primary">{editingSeat ? '更新' : '儲存'}</button>
-              {editingSeat && <button type="button" onClick={() => setEditingSeat(null)} className="btn-secondary">取消</button>}
+              {editingSeat && (
+                <button type="button" onClick={() => setEditingSeat(null)} className="btn-secondary">取消</button>
+              )}
             </div>
           </form>
         </div>
 
         {/* 右側：2D 平面畫布 */}
-        <div className="preview-section" style={{ flex: '1.5' }}>
+        <div className="preview-section">
           <div 
-            className="scroll-container" 
+            className="canvas-scroll-viewport" 
             ref={scrollContainerRef}
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
-            style={{ 
-              width: '100%', 
-              height: '400px', 
-              overflow: 'auto', 
-              background: '#f0f0f0', 
-              border: '2px solid #ccc',
-              position: 'relative'
-            }}
           >
             <div 
               className="floor-plan-grid" 
               style={{ 
                 width: `${MAX_UNITS * UNIT_SIZE}px`, 
                 height: `${MAX_UNITS * UNIT_SIZE}px`,
-                backgroundColor: '#fff',
-                backgroundImage: 'linear-gradient(#eee 1px, transparent 1px), linear-gradient(90deg, #eee 1px, transparent 1px)',
-                backgroundSize: `${UNIT_SIZE}px ${UNIT_SIZE}px`,
-                position: 'relative'
+                backgroundSize: `${UNIT_SIZE}px ${UNIT_SIZE}px`
               }}
             >
               {seats.map(seat => (
                 <div 
                   key={seat.SEAT_ID}
-                  className={`seat-unit ${editingSeat?.SEAT_ID === seat.SEAT_ID ? 'active' : ''}`}
+                  className={`seat-unit-box ${editingSeat?.SEAT_ID === seat.SEAT_ID ? 'is-active' : ''}`}
                   draggable="true"
                   onDragStart={(e) => handleDragStart(e, seat.SEAT_ID)}
                   onClick={() => setEditingSeat(seat)}
                   style={{ 
-                    position: 'absolute',
                     left: `${seat.POSITION_X * UNIT_SIZE}px`, 
                     top: `${seat.POSITION_Y * UNIT_SIZE}px`,
                     width: `${UNIT_SIZE}px`,
-                    height: `${UNIT_SIZE}px`,
-                    backgroundColor: editingSeat?.SEAT_ID === seat.SEAT_ID ? '#ffc107' : '#007bff',
-                    color: '#white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '12px',
-                    cursor: 'grab',
-                    border: '1px solid #0056b3',
-                    boxSizing: 'border-box',
-                    zIndex: editingSeat?.SEAT_ID === seat.SEAT_ID ? 10 : 1
+                    height: `${UNIT_SIZE}px`
                   }}
                 >
                   {seat.SEAT_NAME}
@@ -238,37 +222,38 @@ const SEAT = ({ API_BASE }) => {
               ))}
             </div>
           </div>
-          <p className="hint">可直接拖動藍色方塊，放開後自動對齊網格並儲存。</p>
+          <p className="canvas-hint">💡 可直接拖動藍色方塊，放開後自動對齊網格並儲存。</p>
         </div>
       </div>
 
-      {/* 列表部分保持不變 */}
-      <h2>Seats List</h2>
-      {loading ? <p>Loading...</p> : (
-        <table className="item-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Seat Name</th>
-              <th>X / Y (單位)</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {seats.map(seat => (
-              <tr key={seat.SEAT_ID}>
-                <td>{seat.SEAT_ID}</td>
-                <td><strong>{seat.SEAT_NAME}</strong></td>
-                <td>{seat.POSITION_X} / {seat.POSITION_Y}</td>
-                <td style={{ textAlign: 'right' }}>
-                  <button onClick={() => setEditingSeat(seat)} className="btn-primary" style={{ padding: '4px 8px', marginRight: '5px' }}>Edit</button>
-                  <button onClick={() => deleteSeat(seat.SEAT_ID)} className="btn-delete">Delete</button>
-                </td>
+      <section className="list-section">
+        <h2>座位列表</h2>
+        {loading ? <p className="loading-text">載入中...</p> : (
+          <table className="item-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>名稱</th>
+                <th>座標 (X/Y)</th>
+                <th className="text-right">操作</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {seats.map(seat => (
+                <tr key={seat.SEAT_ID}>
+                  <td data-label="ID">{seat.SEAT_ID}</td>
+                  <td data-label="名稱"><strong>{seat.SEAT_NAME}</strong></td>
+                  <td data-label="座標">{seat.POSITION_X} / {seat.POSITION_Y}</td>
+                  <td data-label="操作" className="text-right">
+                    <button onClick={() => setEditingSeat(seat)} className="btn-primary btn-action-sm">編輯</button>
+                    <button onClick={() => deleteSeat(seat.SEAT_ID)} className="btn-delete btn-delete-margin">刪除</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
     </div>
   );
 };

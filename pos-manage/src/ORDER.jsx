@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import './Management.css';
 
 const ORDER = ({ API_BASE }) => {
   const [orders, setOrders] = useState([]);
@@ -149,23 +148,24 @@ const ORDER = ({ API_BASE }) => {
 
   return (
     <div className="container">
-      <h1>訂單管理 (ORDER)</h1>
+      <header className="page-header">
+        <h1>訂單管理 (ORDER)</h1>
+      </header>
 
       <div className='context-info'>
         <strong>即時統計：</strong>
-        目前店內有 <span style={{ color: '#f5222d', fontSize: '1.2em', fontWeight: 'bold' }}>{unSettleCount}</span> 筆訂單尚未結清。
+        目前店內有 <span className="stats-badge-count">{unSettleCount}</span> 筆訂單尚未結清。
       </div>
 
-      {error && <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+      {error && <div className="error-message-box">⚠️ {error}</div>}
 
-      {/* 新增/編輯 表單 */}
-      <form onSubmit={handleSubmit} className="item-form">
+      <form onSubmit={handleSubmit} className="item-form admin-card">
         <h2>{editingOrder ? '編輯訂單內容' : '快速建立新訂單'}</h2>
 
         <div className="form-group">
-          <label>選擇座位:</label>
+          <label>選擇座位</label>
           <select
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+            className="form-select full-width-input"
             value={editingOrder ? editingOrder.SEAT_ID : newOrder.seatId}
             onChange={(e) => editingOrder
               ? setEditingOrder({ ...editingOrder, SEAT_ID: e.target.value })
@@ -182,23 +182,24 @@ const ORDER = ({ API_BASE }) => {
           </select>
         </div>
 
-        <div className="form-group" style={{ marginTop: '15px' }}>
-          <label>折扣金額 (DISCOUNT):</label>
+        <div className="form-group">
+          <label>折扣金額 (DISCOUNT)</label>
           <input
             type="number"
+            className="form-input full-width-input"
             value={editingOrder ? editingOrder.DISCOUNT : newOrder.discount}
             onChange={(e) => editingOrder
               ? setEditingOrder({ ...editingOrder, DISCOUNT: e.target.value })
               : setNewOrder({ ...newOrder, discount: e.target.value })
             }
             placeholder="0"
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
-        <div className="form-group" style={{ marginTop: '15px' }}>
-          <label>訂單備註:</label>
+        <div className="form-group">
+          <label>訂單備註</label>
           <textarea
+            className="form-textarea"
             value={editingOrder ? editingOrder.NOTE : newOrder.note}
             onChange={(e) => editingOrder
               ? setEditingOrder({ ...editingOrder, NOTE: e.target.value })
@@ -218,9 +219,8 @@ const ORDER = ({ API_BASE }) => {
         </div>
       </form>
 
-      {/* 訂單清單 */}
-      <h2 style={{ marginTop: '30px' }}>訂單清單</h2>
-      {loading ? <p>載入中...</p> : (
+      <h2 className="list-title">今日訂單清單</h2>
+      {loading ? <p className="loading-text">載入中...</p> : (
         <table className="item-table">
           <thead>
             <tr>
@@ -241,26 +241,28 @@ const ORDER = ({ API_BASE }) => {
 
               return (
                 <tr key={order.ORDER_ID}>
-                  <td>{order.ORDER_ID}</td>
-                  <td><span className="type-badge">{seatObj ? seatObj.SEAT_NAME : order.SEAT_ID}</span></td>
-                  <td>
-                    <span className="type-badge" style={{ backgroundColor: isSettled ? '#8c8c8c' : '#f5222d', color: 'white' }}>
+                  <td data-label="編號">{order.ORDER_ID}</td>
+                  <td data-label="座位">
+                    <span className="type-badge">{seatObj ? seatObj.SEAT_NAME : order.SEAT_ID}</span>
+                  </td>
+                  <td data-label="狀態">
+                    <span className={`type-badge ${isSettled ? 'status-badge-settled' : 'status-badge-pending'}`}>
                       {isSettled ? '已結清' : '未結帳'}
                     </span>
                   </td>
-                  <td>${Number(order.subTotal).toFixed(2)}</td>
-                  <td style={{ color: '#f5222d' }}>-${Number(order.DISCOUNT).toFixed(2)}</td>
-                  <td><strong style={{ color: '#007bff' }}>${Number(order.ORDER_MOUNT).toFixed(2)}</strong></td>
-                  <td className="description-cell">{order.NOTE || '-'}</td>
-                  <td>
+                  <td data-label="小計" className="amount-subtotal">${Number(order.subTotal).toFixed(2)}</td>
+                  <td data-label="折扣" className="amount-discount">-${Number(order.DISCOUNT).toFixed(2)}</td>
+                  <td data-label="最終總額" className="amount-grand-total">${Number(order.ORDER_MOUNT).toFixed(2)}</td>
+                  <td data-label="備註" className="description-cell">{order.NOTE || '-'}</td>
+                  <td data-label="操作">
                     <Link to={`/ORDER/${order.ORDER_ID}`}>
-                      <button className="btn-primary" style={{ padding: '4px 12px' }}>明細</button>
+                      <button className="btn-primary btn-action-sm">明細</button>
                     </Link>
                     {!isSettled && (
                       <>
-                        <button onClick={() => setEditingOrder(order)} className="btn-secondary" style={{ padding: '4px 8px', marginLeft: '5px' }}>修改</button>
-                        <button onClick={() => settleOrder(order.ORDER_ID)} className="btn-primary" style={{ padding: '4px 8px', marginLeft: '5px', backgroundColor: '#faad14' }}>結清</button>
-                        <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete" style={{ color: 'red', marginLeft: '10px', border: 'none', background: 'none', cursor: 'pointer' }}>刪除</button>
+                        <button onClick={() => setEditingOrder(order)} className="btn-secondary btn-action-sm">修改</button>
+                        <button onClick={() => settleOrder(order.ORDER_ID)} className="btn-primary btn-settle btn-action-sm">結清</button>
+                        <button onClick={() => deleteOrder(order.ORDER_ID)} className="btn-delete-link">刪除</button>
                       </>
                     )}
                   </td>

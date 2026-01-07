@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import './Management.css';
 
 const AUDIT = ({ API_BASE }) => {
   const [orders, setOrders] = useState([]);
@@ -135,22 +134,24 @@ const AUDIT = ({ API_BASE }) => {
     }, { totalRevenue: 0, totalDiscount: 0 });
   }, [filteredOrders]);
 
+  // ... 前端邏輯保持不變 ...
+
   return (
     <div className="container audit-container">
       <header className="audit-header">
         <h1>會計稽核管理 (Order Audit)</h1>
         <div className="summary-cards">
-          <div className="card">
+          <div className="card card-total-count">
             <h3>篩選訂單數</h3>
             <p className="card-value">{filteredOrders.length} 筆</p>
           </div>
-          <div className="card" style={{ borderTopColor: '#52c41a' }}>
+          <div className="card card-revenue">
             <h3>區間總營收</h3>
             <p className="card-value">${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
           </div>
-          <div className="card" style={{ borderTopColor: '#f5222d' }}>
+          <div className="card card-discount">
             <h3>已折讓總額</h3>
-            <p className="card-value" style={{ color: '#cf1322' }}>-${stats.totalDiscount.toLocaleString()}</p>
+            <p className="card-value">-${stats.totalDiscount.toLocaleString()}</p>
           </div>
         </div>
       </header>
@@ -164,8 +165,9 @@ const AUDIT = ({ API_BASE }) => {
           {(startDate || endDate) && <button className="btn-clear" onClick={() => { setStartDate(''); setEndDate(''); }}>重置</button>}
         </div>
       </div>
+
       {error && (
-        <div className="error-message" style={{ color: 'red', padding: '10px', background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: '4px', marginBottom: '20px' }}>
+        <div className="error-message-box">
           <i className="fa-solid fa-circle-exclamation"></i> 系統錯誤：{error}
         </div>
       )}
@@ -174,7 +176,7 @@ const AUDIT = ({ API_BASE }) => {
         <table className="item-table">
           <thead>
             <tr>
-              <th onClick={() => setSortConfig({ key: 'ORDER_ID', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' })} style={{ cursor: 'pointer' }}>單號 ↕</th>
+              <th onClick={() => setSortConfig({ key: 'ORDER_ID', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' })}>單號 ↕</th>
               <th>桌號</th>
               <th>成交時間</th>
               <th>應付總額</th>
@@ -185,14 +187,14 @@ const AUDIT = ({ API_BASE }) => {
             {sortedOrders.map(order => (
               <React.Fragment key={order.ORDER_ID}>
                 <tr className={expandedOrder === order.ORDER_ID ? 'expanded-row' : ''}>
-                  <td>#{order.ORDER_ID}</td>
-                  <td>{order.SEAT_NAME || order.SEAT_ID}</td>
-                  <td>{new Date(order.ORDER_DATE).toLocaleString('zh-TW', { timeZone: 'UTC' })}</td>
-                  <td className="price-cell">
+                  <td data-label="單號">#{order.ORDER_ID}</td>
+                  <td data-label="桌號">{order.SEAT_NAME || order.SEAT_ID}</td>
+                  <td data-label="成交時間">{new Date(order.ORDER_DATE).toLocaleString('zh-TW', { timeZone: 'UTC' })}</td>
+                  <td data-label="應付總額" className="price-cell">
                     <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
-                    {order.DISCOUNT > 0 && <small style={{ color: 'red', display: 'block' }}>(折 -${order.DISCOUNT})</small>}
+                    {order.DISCOUNT > 0 && <span className="discount-tag">(折 -${order.DISCOUNT})</span>}
                   </td>
-                  <td>
+                  <td data-label="操作">
                     <button className="btn-secondary" onClick={() => toggleExpand(order.ORDER_ID)}>
                       {expandedOrder === order.ORDER_ID ? '收合' : '明細'}
                     </button>
@@ -202,42 +204,39 @@ const AUDIT = ({ API_BASE }) => {
                 {expandedOrder === order.ORDER_ID && (
                   <tr className="detail-row">
                     <td colSpan="5" className="detail-container-cell">
-                      {/* PDF 匯出區域 */}
-                      <div ref={pdfExportRef} className="audit-detail-card" style={{ background: '#f9f9f9', padding: '20px', border: '1px solid #ddd' }}>
-                        <div className="detail-header" style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
-                          <h4 style={{ margin: 0 }}>單號 #{order.ORDER_ID} 詳細品項</h4>
-                          <div style={{ display: 'flex', gap: '10px' }}>
-                            <button
-                              className="btn-primary no-pdf"
-                              onClick={() => exportToPDF(order.ORDER_ID)}
-                              style={{ padding: '2px 10px', fontSize: '0.8em', backgroundColor: '#52c41a' }}
-                            >
+                      <div ref={pdfExportRef} className="audit-detail-card">
+                        <div className="detail-header">
+                          <h4>單號 #{order.ORDER_ID} 詳細品項</h4>
+                          <div className="detail-actions">
+                            <button className="btn-primary no-pdf" onClick={() => exportToPDF(order.ORDER_ID)}>
                               匯出 PDF
                             </button>
-                            <span style={{ fontSize: '0.9em', color: '#868e96', marginTop: '5%' }}>{order.settle === 1 ? '✅ 已結清' : '❌ 未結清'}</span>
+                            <span className={`status-badge ${order.settle === 1 ? 'settled' : 'unsettled'}`}>
+                              {order.settle === 1 ? '✅ 已結清' : '❌ 未結清'}
+                            </span>
                           </div>
                         </div>
 
                         {orderDetails.length > 0 ? (
                           <div className="detail-body">
-                            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px' }}>
-                              <thead style={{ background: '#eee' }}>
+                            <table className="inner-detail-table">
+                              <thead>
                                 <tr>
-                                  <th style={{ textAlign: 'left', padding: '8px' }}>品項</th>
+                                  <th>品項</th>
                                   <th>單價</th>
                                   <th>數量</th>
                                   <th>折扣％</th>
-                                  <th style={{ textAlign: 'right' }}>小計</th>
+                                  <th className="text-right">小計</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {orderDetails.map(d => (
-                                  <tr key={d.DETAIL_ID} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ textAlign: 'left', padding: '8px' }}>{d.ITEM_NAME}</td>
-                                    <td style={{ textAlign: 'left' }}>${Number(d.PRICE_AT_SALE).toFixed(0)}</td>
-                                    <td style={{ textAlign: 'left' }}>x {d.QUANTITY}</td>
-                                    <td style={{ textAlign: 'left' }}>{(!d.SALE_IN_PERCENT===100) ? `${100 - d.SALE_IN_PERCENT}%` : '-'}</td>
-                                    <td style={{ textAlign: 'right', padding: '8px' }}>${(d.PRICE_AT_SALE * d.QUANTITY * d.SALE_IN_PERCENT * 0.01).toFixed(2)}</td>
+                                  <tr key={d.DETAIL_ID}>
+                                    <td data-label="品項">{d.ITEM_NAME}</td>
+                                    <td data-label="單價">${Number(d.PRICE_AT_SALE).toFixed(0)}</td>
+                                    <td data-label="數量">x {d.QUANTITY}</td>
+                                    <td data-label="折扣％">{(d.SALE_IN_PERCENT !== 100) ? `${100 - d.SALE_IN_PERCENT}%` : '-'}</td>
+                                    <td data-label="小計" className="text-right">${(d.PRICE_AT_SALE * d.QUANTITY * d.SALE_IN_PERCENT * 0.01).toFixed(2)}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -245,24 +244,20 @@ const AUDIT = ({ API_BASE }) => {
 
                             <div className="detail-footer">
                               <div className="footer-notes">
-                                {new Date(order.ORDER_DATE).toLocaleString('zh-TW', { timeZone: 'UTC' })}<br />
+                                <time>{new Date(order.ORDER_DATE).toLocaleString('zh-TW', { timeZone: 'UTC' })}</time><br />
                                 <strong>訂單備註：</strong><br />
-                                {order.NOTE || '無備註'}
+                                <span className="note-text">{order.NOTE || '無備註'}</span>
                               </div>
                               <div className="footer-total">
-                                <div className='footer-subtotal' style={{ fontSize: '0.9em', color: '#888' }}>
-                                  品項小計：${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}
-                                </div>
-                                <div className='footer-discount' style={{ color: 'red', fontSize: '0.9em' }}>
-                                  折扣： -${Number(order.DISCOUNT).toFixed(2)}
-                                </div>
-                                <div style={{ fontSize: '1.2em', borderTop: '1px solid #333', marginTop: '5px' }}>
+                                <div className="total-row subtotal">品項小計：${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</div>
+                                <div className="total-row discount">折扣： -${Number(order.DISCOUNT).toFixed(2)}</div>
+                                <div className="total-row grand-total">
                                   應付實收總額： <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        ) : <p>載入明細中...</p>}
+                        ) : <p className="loading-text">載入明細中...</p>}
                       </div>
                     </td>
                   </tr>

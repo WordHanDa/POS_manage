@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import './Management.css';
 
 const ORDER_DETAIL = ({ API_BASE }) => {
   const { orderId } = useParams();
@@ -112,32 +111,32 @@ const ORDER_DETAIL = ({ API_BASE }) => {
 
   return (
     <div className="container">
-      <Link to="/ORDER" className="btn-secondary" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '20px' }}>
+      <Link to="/ORDER" className="btn-secondary btn-back">
         ← 返回訂單列表
       </Link>
 
       <h1>訂單詳情 # {orderId}</h1>
-      {error && <div className="error-message">⚠️ {error}</div>}
+      {error && <div className="error-message-box">⚠️ {error}</div>}
 
-      {/* 表單區塊 */}
-      <form onSubmit={addDetail} className="item-form">
+      <form onSubmit={addDetail} className="item-form admin-card">
         <h3>新增品項</h3>
         <div className="form-grid">
           <div className="form-group">
-            <label>類別:</label>
-            <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
-              <option value="">-- 顯示全部類別 --</option>
+            <label>類別</label>
+            <select className="form-select" value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
+              <option value="">-- 全部類別 --</option>
               {types.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div className="form-group">
-            <label>選擇品項:</label>
+            <label>選擇品項</label>
             <select
+              className="form-select"
               value={newDetail.itemId}
               onChange={(e) => setNewDetail({ ...newDetail, itemId: e.target.value })}
               required
             >
-              <option value="">-- 請先選擇類別 --</option>
+              <option value="">-- 選擇品項 --</option>
               {filteredItems.map(i => (
                 <option key={i.ITEM_ID} value={i.ITEM_ID}>
                   {i.ITEM_NAME} (${Number(i.ITEM_PRICE).toFixed(0)})
@@ -146,19 +145,19 @@ const ORDER_DETAIL = ({ API_BASE }) => {
             </select>
           </div>
           <div className="form-group">
-            <label>數量:</label>
-            <input type="number" min="1" value={newDetail.quantity} onChange={(e) => setNewDetail({ ...newDetail, quantity: e.target.value })} required />
+            <label>數量</label>
+            <input type="number" min="1" className="form-input" value={newDetail.quantity} onChange={(e) => setNewDetail({ ...newDetail, quantity: e.target.value })} required />
           </div>
           <div className="form-group">
-            <label>折扣 (%):</label>
-            <input type="number" min="0" max="100" value={newDetail.discount} onChange={(e) => setNewDetail({ ...newDetail, discount: e.target.value })} />
+            <label>折扣 (%)</label>
+            <input type="number" min="0" max="100" className="form-input" value={newDetail.discount} onChange={(e) => setNewDetail({ ...newDetail, discount: e.target.value })} />
           </div>
         </div>
-        <button type="submit" className="btn-primary" style={{ marginTop: '10px' }}>新增至訂單</button>
+        <button type="submit" className="btn-primary form-submit-btn">新增至訂單</button>
       </form>
 
       <h2>品項明細</h2>
-      {loading ? <p>資料載入中...</p> : (
+      {loading ? <p className="loading-text">資料載入中...</p> : (
         <table className="item-table">
           <thead>
             <tr>
@@ -173,39 +172,30 @@ const ORDER_DETAIL = ({ API_BASE }) => {
           <tbody>
             {details.length > 0 ? details.map(d => (
               <tr key={d.DETAIL_ID}>
-                <td><strong>{d.ITEM_NAME}</strong></td>
-                <td>${Number(d.PRICE_AT_SALE).toFixed(2)}</td>
-                <td>{d.QUANTITY}</td>
-                <td>
+                <td data-label="品項名稱"><strong>{d.ITEM_NAME}</strong></td>
+                <td data-label="原價">${Number(d.PRICE_AT_SALE).toFixed(2)}</td>
+                <td data-label="數量">{d.QUANTITY}</td>
+                <td data-label="折扣">
                   {editingDiscountId === d.DETAIL_ID ? (
-                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                    <div className="discount-edit-container">
                       <input
                         type="number"
-                        style={{ width: '60px', padding: '4px' }}
+                        className="discount-input-small"
                         value={tempDiscount}
                         onChange={(e) => setTempDiscount(e.target.value)}
                       />
-                      <button className="btn-primary" onClick={() => handleUpdateDiscount(d.DETAIL_ID)} style={{ padding: '2px 8px', margin: 0 }}>✓</button>
-                      <button className="btn-secondary" onClick={() => setEditingDiscountId(null)} style={{ padding: '2px 8px', margin: 0 }}>✕</button>
+                      <button className="btn-primary btn-icon-small" onClick={() => handleUpdateDiscount(d.DETAIL_ID)}>✓</button>
+                      <button className="btn-secondary btn-icon-small" onClick={() => setEditingDiscountId(null)}>✕</button>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div className="discount-display-container">
                       <span className="type-badge">{d.SALE_IN_PERCENT}%</span>
-                      {/* 如果尚未出單，則顯示明確的修改按鈕 */}
                       {d.SEND === 0 && (
                         <button
+                          className="btn-edit-link"
                           onClick={() => {
                             setEditingDiscountId(d.DETAIL_ID);
                             setTempDiscount(d.SALE_IN_PERCENT);
-                          }}
-                          style={{
-                            background: 'none',
-                            border: '1px solid #888',
-                            color: '#888',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontSize: '0.7em',
-                            cursor: 'pointer'
                           }}
                         >
                           修改
@@ -214,20 +204,13 @@ const ORDER_DETAIL = ({ API_BASE }) => {
                     </div>
                   )}
                 </td>
-
-                <td><strong>${(d.PRICE_AT_SALE * d.QUANTITY * (d.SALE_IN_PERCENT / 100)).toFixed(2)}</strong></td>
-                <td>
+                <td data-label="小計" className="price-cell">
+                  <strong>${(d.PRICE_AT_SALE * d.QUANTITY * (d.SALE_IN_PERCENT / 100)).toFixed(2)}</strong>
+                </td>
+                <td data-label="操作">
                   <button
-                    className="btn-primary"
+                    className={`btn-primary btn-status ${d.SEND === 1 ? 'status-sent' : 'status-pending'}`}
                     disabled={d.SEND === 1}
-                    style={{
-                      backgroundColor: d.SEND === 1 ? '#b7eb8f' : '#faad14',
-                      borderColor: d.SEND === 1 ? '#b7eb8f' : '#faad14',
-                      cursor: d.SEND === 1 ? 'not-allowed' : 'pointer',
-                      color: d.SEND === 1 ? '#52c41a' : 'white',
-                      width: '100px',
-                      fontWeight: 'bold'
-                    }}
                     onClick={async () => {
                       try {
                         const response = await fetch(`${API_BASE}/ORDER_DETAIL/send/${d.DETAIL_ID}`, {
@@ -235,8 +218,7 @@ const ORDER_DETAIL = ({ API_BASE }) => {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ sendStatus: 1 })
                         });
-                        if (!response.ok) throw new Error('更新狀態失敗');
-                        fetchDetails();
+                        if (response.ok) fetchDetails();
                       } catch (err) { alert(err.message); }
                     }}
                   >
@@ -244,14 +226,14 @@ const ORDER_DETAIL = ({ API_BASE }) => {
                   </button>
 
                   {d.SEND === 0 && (
-                    <button onClick={() => deleteDetail(d.DETAIL_ID)} className="btn-delete" style={{ marginLeft: '10px' }}>
+                    <button onClick={() => deleteDetail(d.DETAIL_ID)} className="btn-delete btn-delete-margin">
                       移除
                     </button>
                   )}
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px', color: '#999' }}>目前無明細</td></tr>
+              <tr><td colSpan="6" className="empty-cell">目前無明細</td></tr>
             )}
           </tbody>
         </table>

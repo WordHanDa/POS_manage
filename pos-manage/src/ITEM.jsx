@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './Management.css';
 
 const ITEM = ({ API_BASE }) => {
   const [items, setItems] = useState([]);
@@ -151,17 +150,21 @@ const ITEM = ({ API_BASE }) => {
 
   return (
     <div className="container">
-      <h1>品項管理</h1>
-      {error && <div className="error-message">{error}</div>}
+      <header className="page-header">
+        <h1>品項管理</h1>
+      </header>
 
-      <form onSubmit={handleSubmit} className="item-form">
+      {error && <div className="error-message-box">⚠️ {error}</div>}
+
+      <form onSubmit={handleSubmit} className="item-form admin-card">
         <h2>{editingItem ? '編輯品項' : '新增品項'}</h2>
 
         <div className="form-grid">
           <div className="form-group">
-            <label>名稱: </label>
+            <label>名稱</label>
             <input
               type="text"
+              className="form-input"
               value={editingItem ? editingItem.ITEM_NAME : newItem.name}
               onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, ITEM_NAME: e.target.value })
@@ -171,10 +174,11 @@ const ITEM = ({ API_BASE }) => {
             />
           </div>
           <div className="form-group">
-            <label>價格: </label>
+            <label>價格</label>
             <input
               type="number"
               step="0.01"
+              className="form-input"
               value={editingItem ? editingItem.ITEM_PRICE : newItem.price}
               onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, ITEM_PRICE: e.target.value })
@@ -183,11 +187,10 @@ const ITEM = ({ API_BASE }) => {
               required
             />
           </div>
-
-          {/* --- 修改：將 Type 改為 Select --- */}
           <div className="form-group">
-            <label>種類: </label>
+            <label>種類</label>
             <select
+              className="form-select"
               value={editingItem ? editingItem.Type : newItem.type}
               onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, Type: e.target.value })
@@ -196,17 +199,15 @@ const ITEM = ({ API_BASE }) => {
               required
             >
               {ITEM_TYPES.map(type => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
+                <option key={type.value} value={type.value}>{type.label}</option>
               ))}
             </select>
           </div>
-
           <div className="form-group">
-            <label>圖片連結: </label>
+            <label>圖片連結</label>
             <input
               type="text"
+              className="form-input"
               value={editingItem ? editingItem.PICTURE_URL : newItem.pictureUrl}
               onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, PICTURE_URL: e.target.value })
@@ -218,8 +219,9 @@ const ITEM = ({ API_BASE }) => {
 
         <div className="description-area">
           <div className="form-group">
-            <label>描述: </label>
+            <label>描述</label>
             <textarea
+              className="form-textarea"
               value={editingItem ? editingItem.Description : newItem.description}
               onChange={(e) => editingItem
                 ? setEditingItem({ ...editingItem, Description: e.target.value })
@@ -231,53 +233,61 @@ const ITEM = ({ API_BASE }) => {
 
         <div className="button-group">
           <button type="submit" className="btn-primary">{editingItem ? '更新' : '加入'}品項</button>
-          {editingItem && <button type="button" onClick={() => setEditingItem(null)} className="btn-secondary">取消</button>}
+          {editingItem && (
+            <button type="button" onClick={() => setEditingItem(null)} className="btn-secondary">取消</button>
+          )}
         </div>
       </form>
 
-      <h2>品項清單</h2>
-      {loading ? <p>載入中...</p> : (
-        <table className="item-table">
-          <thead>
-            <tr>
-              <th onClick={() => requestSort('ITEM_ID')} style={{ cursor: 'pointer' }}>ID {getSortIcon('ITEM_ID')}</th>
-              <th>圖片</th>
-              <th onClick={() => requestSort('ITEM_NAME')} style={{ cursor: 'pointer' }}>名稱 {getSortIcon('ITEM_NAME')}</th>
-              <th onClick={() => requestSort('Type')} style={{ cursor: 'pointer' }}>類型 {getSortIcon('Type')}</th>
-              <th onClick={() => requestSort('ITEM_PRICE')} style={{ cursor: 'pointer' }}>價格 {getSortIcon('ITEM_PRICE')}</th>
-              <th>描述</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedItems.map(item => (
-              <tr key={item.ITEM_ID}>
-                <td>{item.ITEM_ID}</td>
-                <td>{item.PICTURE_URL ? <img
-                  src={"https://posfront-psi.vercel.app/" + item.PICTURE_URL || "https://posfront-psi.vercel.app/placeholder.png"}
-                  alt={item.ITEM_NAME}
-                  className="item-thumbnail"
-                  onError={handleImgError} // 核心：失敗時觸發
-                /> : <span>No Image</span>}</td>
-                <td>{item.ITEM_NAME}</td>
-                <td><span className="type-badge">{item.Type}</span></td>
-                <td>${item.ITEM_PRICE}</td>
-                <td
-                  className={`description-cell ${expandedId === item.ITEM_ID ? 'expanded' : ''}`}
-                  onClick={() => toggleDescription(item.ITEM_ID)}
-                  title="點擊展開/收合"
-                >
-                  {item.Description}
-                </td>
-                <td>
-                  <button onClick={() => handleEdit(item)}>編輯</button>
-                  <button onClick={() => deleteItem(item.ITEM_ID)} className="btn-delete">刪除</button>
-                </td>
+      <section className="list-section">
+        <h2>品項清單</h2>
+        {loading ? <p className="loading-text">載入中...</p> : (
+          <table className="item-table">
+            <thead>
+              <tr>
+                <th className="sortable-th" onClick={() => requestSort('ITEM_ID')}>ID {getSortIcon('ITEM_ID')}</th>
+                <th>圖片</th>
+                <th className="sortable-th" onClick={() => requestSort('ITEM_NAME')}>名稱 {getSortIcon('ITEM_NAME')}</th>
+                <th className="sortable-th" onClick={() => requestSort('Type')}>類型 {getSortIcon('Type')}</th>
+                <th className="sortable-th" onClick={() => requestSort('ITEM_PRICE')}>價格 {getSortIcon('ITEM_PRICE')}</th>
+                <th>描述</th>
+                <th>操作</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {sortedItems.map(item => (
+                <tr key={item.ITEM_ID}>
+                  <td data-label="ID">{item.ITEM_ID}</td>
+                  <td data-label="圖片">
+                    {item.PICTURE_URL ? (
+                      <img
+                        src={"https://posfront-psi.vercel.app/" + item.PICTURE_URL}
+                        alt={item.ITEM_NAME}
+                        className="item-thumbnail"
+                        onError={handleImgError}
+                      />
+                    ) : <span className="no-img-text">無圖片</span>}
+                  </td>
+                  <td data-label="名稱" className="item-name-cell">{item.ITEM_NAME}</td>
+                  <td data-label="類型"><span className="type-badge">{item.Type}</span></td>
+                  <td data-label="價格" className="item-price-tag">${item.ITEM_PRICE}</td>
+                  <td
+                    data-label="描述"
+                    className={`description-cell ${expandedId === item.ITEM_ID ? 'expanded' : ''}`}
+                    onClick={() => toggleDescription(item.ITEM_ID)}
+                  >
+                    {item.Description}
+                  </td>
+                  <td data-label="操作" className="action-cell">
+                    <button className="btn-edit" onClick={() => handleEdit(item)}>編輯</button>
+                    <button className="btn-delete" onClick={() => deleteItem(item.ITEM_ID)}>刪除</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
     </div>
   );
 };
