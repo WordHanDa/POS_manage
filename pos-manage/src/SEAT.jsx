@@ -224,7 +224,6 @@ const SEAT = ({ API_BASE }) => {
               ))}
             </div>
           </div>
-          <p className="canvas-hint">💡 可直接拖動藍色方塊，放開後自動對齊網格並儲存。</p>
         </div>
       </div>
 
