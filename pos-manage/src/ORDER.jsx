@@ -151,7 +151,7 @@ const ORDER = ({ API_BASE }) => {
     <div className="container">
       <h1>訂單管理 (ORDER)</h1>
 
-      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ffe58f', borderRadius: '8px', background: '#fffbe6' }}>
+      <div className='context-info'>
         <strong>即時統計：</strong>
         目前店內有 <span style={{ color: '#f5222d', fontSize: '1.2em', fontWeight: 'bold' }}>{unSettleCount}</span> 筆訂單尚未結清。
       </div>

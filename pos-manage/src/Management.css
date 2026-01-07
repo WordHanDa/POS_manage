@@ -152,6 +152,13 @@
   align-items: center;
 }
 
+.context-info {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ffe58f;
+  border-radius: 8px;
+}
+
 .filter-group {
   display: flex;
   align-items: center;
