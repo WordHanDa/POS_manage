@@ -206,13 +206,12 @@ const AUDIT = ({ API_BASE }) => {
                     <td colSpan="5" className="detail-container-cell">
                       <div ref={pdfExportRef} className="audit-detail-card">
                         <div className="detail-header">
-                          <h4>單號 #{order.ORDER_ID} 詳細品項</h4>
+                          <h4>單號 #{order.ORDER_ID}</h4>
+                          <time>{new Date(order.ORDER_DATE).toLocaleString('zh-TW', { timeZone: 'UTC' })}</time><br />
                           <div className="detail-actions">
-                            <button className="btn-primary no-pdf" onClick={() => exportToPDF(order.ORDER_ID)}>
-                              匯出 PDF
-                            </button>
+              
                             <span className={`status-badge ${order.settle === 1 ? 'settled' : 'unsettled'}`}>
-                              {order.settle === 1 ? '✅ 已結清' : '❌ 未結清'}
+                              {order.settle === 1 ? '已結清' : '未結清'}
                             </span>
                           </div>
                         </div>
@@ -244,18 +243,20 @@ const AUDIT = ({ API_BASE }) => {
 
                             <div className="detail-footer">
                               <div className="footer-notes">
-                                <time>{new Date(order.ORDER_DATE).toLocaleString('zh-TW', { timeZone: 'UTC' })}</time><br />
                                 <strong>訂單備註：</strong><br />
                                 <span className="note-text">{order.NOTE || '無備註'}</span>
                               </div>
                               <div className="footer-total">
-                                <div className="total-row subtotal">品項小計：${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</div>
-                                <div className="total-row discount">折扣： -${Number(order.DISCOUNT).toFixed(2)}</div>
+                                <div className="total-row subtotal">品項小計：<div className='total-value'>${(Number(order.ORDER_MOUNT) + Number(order.DISCOUNT)).toFixed(2)}</div></div>
+                                <div className="total-row discount">折扣：<div className='total-value'>-${Number(order.DISCOUNT).toFixed(2)}</div> </div>
                                 <div className="total-row grand-total">
-                                  應付實收總額： <strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong>
+                                  應付實收總額：<div className='total-value'><strong>${Number(order.ORDER_MOUNT).toFixed(2)}</strong></div>
                                 </div>
                               </div>
                             </div>
+                            <button className="btn-primary no-pdf" onClick={() => exportToPDF(order.ORDER_ID)}>
+                              匯出 PDF
+                            </button>
                           </div>
                         ) : <p className="loading-text">載入明細中...</p>}
                       </div>

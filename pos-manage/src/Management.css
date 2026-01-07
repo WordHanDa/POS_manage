@@ -2,311 +2,530 @@
    1. 基礎佈局與全域變數 (Variables & Base)
    ========================================== */
 :root {
-    --gold: #b2966b;
-    --gold-dark: #8b7355;
-    --black: #000000;
-    --dark-gray: #201b18;
-    --light-gray: rgba(192, 192, 192, 0.85);
-    --light-white: rgba(255, 255, 255, 0.9);
-    --dark-white: rgba(255, 255, 255, 0.7);
-    --gold-gradient: linear-gradient(180deg, #f9ef91, #9d9653, var(--gold-dark));
-    --error-red: #ff4d4f;
-    --success-green: #52c41a;
+  --gold: #b2966b;
+  --gold-dark: #8b7355;
+  --black: #000000;
+  --dark-gray: #201b18;
+  --light-gray: rgba(192, 192, 192, 0.85);
+  --light-white: rgba(255, 255, 255, 0.9);
+  --dark-white: rgba(255, 255, 255, 0.7);
+  --gold-gradient: linear-gradient(180deg, #f9ef91, #9d9653, var(--gold-dark));
+  --error-red: #ff4d4f;
+  --success-green: #52c41a;
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* 移除 iOS 點擊時的高亮灰色 */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    font-family: 'Cormorant Garamond', 'Noto Serif TC', serif;
-    background-color: var(--black);
-    color: var(--gold);
-    min-height: 100vh;
-    line-height: 1.6;
+  font-family: 'Cormorant Garamond', 'Noto Serif TC', serif;
+  background-color: var(--black);
+  color: var(--gold);
+  min-height: 100vh;
+  line-height: 1.6;
+  /* 讓字體在 macOS/iOS 上更細緻 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ==========================================
-   2. 導覽列與主架構 (Layout)
+   2. 跨平台樣式重置 (System Override) 
+   ========================================== */
+
+/* 移除 iOS 上 input 和 button 的預設內陰影與圓角 */
+input,
+textarea,
+select,
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  font-family: inherit;
+}
+
+/* 針對 iOS 禁用自動縮放輸入框內容（通常發生在字體小於 16px 時） */
+@media screen and (max-width: 768px) {
+
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* 自定義捲軸樣式 (Chrome/Safari/Edge) - 統一 Windows 與 Mac 體驗 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold-dark);
+  border-radius: 3px;
+}
+
+.filter-group input[type="date"]{
+  background-color: transparent;
+  border: 1px solid var(--gold-dark);
+  padding: 8px;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  color: var(--light-white);
+  font-size: 1rem;
+  cursor: pointer;
+}
+/* 移除日期選擇器的瀏覽器預設圖示樣式 (Chrome/Safari) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(70%) sepia(20%) saturate(500%) hue-rotate(10deg);
+  cursor: pointer;
+}
+
+/* ==========================================
+   3. 導覽列與主架構 (Layout)
    ========================================== */
 .app-layout {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(145deg, rgba(12, 11, 10, 0.95), rgba(32, 27, 24, 0.95));
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(145deg, rgba(12, 11, 10, 0.95), rgba(32, 27, 24, 0.95));
 }
 
 .navbar {
-    padding: 15px 30px;
-    background: var(--black);
-    border-bottom: 1px solid var(--gold-dark);
-    display: flex;
-    gap: 25px;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
-    overflow-x: auto; /* 防止手機端標籤折行 */
+  padding: 15px 30px;
+  background: var(--black);
+  border-bottom: 1px solid var(--gold-dark);
+  display: flex;
+  gap: 25px;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+  /* 隱藏行動裝置上的捲軸 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overflow-x: auto;
+}
+
+.navbar::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-brand {
-    font-size: 1.4rem;
-    font-weight: 400;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    background: var(--gold-gradient);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    text-decoration: none;
-    flex-shrink: 0;
+  font-size: 1.4rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: var(--gold-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
 .nav-link {
-    color: var(--light-white);
-    text-decoration: none;
-    letter-spacing: 0.1em;
-    transition: color 0.3s ease;
-    font-size: 1rem;
-    flex-shrink: 0;
+  color: var(--light-white);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  transition: color 0.3s ease;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
-.nav-link:hover, .nav-link.active {
-    color: var(--gold);
+.nav-link:hover,
+.nav-link.active {
+  color: var(--gold);
 }
 
 .main-container {
-    padding-top: 100px; /* 增加間距防止導覽列遮擋 */
-    padding-bottom: 40px;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding-left: 20px;
-    padding-right: 20px;
+  padding-top: 100px;
+  padding-bottom: 40px;
+  width: 100vw;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 /* ==========================================
-   3. 通用元件 (Common UI)
+   4. 通用元件 (Common UI)
    ========================================== */
-.item-form, .admin-card, .card {
-    background: var(--dark-gray);
-    border: 1px solid var(--gold-dark);
-    padding: 25px;
-    border-radius: 4px;
-    color: var(--light-white);
-    margin-bottom: 25px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+.item-form,
+.admin-card,
+.card {
+  background: var(--dark-gray);
+  border: 1px solid var(--gold-dark);
+  padding: 25px;
+  border-radius: 4px;
+  /* 僅保留微小的一致性圓角 */
+  color: var(--light-white);
+  margin-bottom: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
 }
 
 .form-group {
-    margin-bottom: 15px;
-    text-align: left;
+  margin-bottom: 15px;
+  text-align: left;
 }
 
 .form-group label {
-    display: block;
-    color: var(--gold);
-    margin-bottom: 5px;
-    font-size: 0.9rem;
+  display: block;
+  color: var(--gold);
+  margin-bottom: 5px;
+  font-size: 0.9rem;
 }
 
-.form-input, .form-select, .form-textarea, .date-picker-dark {
-    width: 100%;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--gold-dark);
-    color: var(--gold);
-    border-radius: 2px;
+.form-input,
+.form-select,
+.form-textarea,
+.date-picker-dark {
+  width: 100%;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--gold-dark);
+  color: var(--gold);
+  outline: none;
+  /* 確保在所有平台上都沒有預設邊框圓角 */
+  border-radius: 2px;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: #f9ef91;
+  box-shadow: 0 0 5px rgba(249, 239, 145, 0.3);
+}
+
+.btn-edit {
+  background: var(--gold-dark);
+  color: var(--black);
+  border: none;
+  padding: 8px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-right: 10px;
+}
+
+.btn-delete {
+  color: #f86668;
+  border: 1px solid #f86668;
+  padding: 8px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
 .btn-primary {
-    background: var(--gold);
-    color: var(--black);
-    border: none;
-    padding: 10px 25px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-    text-transform: uppercase;
+  background: var(--gold);
+  color: var(--black);
+  border: none;
+  padding: 12px 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  text-transform: uppercase;
+  display: inline-block;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #f9ef91;
-    transform: translateY(-2px);
+  background: #f9ef91;
+  transform: translateY(-2px);
 }
 
 .btn-primary:disabled {
-    background: #444;
-    color: #888;
-    cursor: not-allowed;
+  background: #444;
+  color: #888;
+  cursor: not-allowed;
 }
 
 .btn-secondary {
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    padding: 10px 25px;
-    cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 10px 25px;
+  cursor: pointer;
 }
 
 .type-badge {
-    padding: 2px 10px;
-    border: 1px solid var(--gold-dark);
-    border-radius: 12px;
-    font-size: 0.75rem;
-    color: var(--gold);
-    white-space: nowrap;
+  padding: 2px 10px;
+  border: 1px solid var(--gold-dark);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--gold);
+  white-space: nowrap;
 }
 
 /* ==========================================
-   4. 表格系統 (Table & RWD)
+   5. 表格系統 (Table & RWD)
    ========================================== */
+
+.item-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
 .item-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 8px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
 }
 
 .item-table th {
-    color: var(--gold);
-    padding: 15px;
-    text-align: left;
-    border-bottom: 2px solid var(--gold-dark);
+  color: var(--gold);
+  padding: 15px;
+  text-align: left;
+  border-bottom: 2px solid var(--gold-dark);
 }
 
 .item-table td {
-    background: rgba(32, 27, 24, 0.8);
-    padding: 15px;
-    vertical-align: middle;
+  background: rgba(32, 27, 24, 0.8);
+  padding: 15px;
+  vertical-align: middle;
 }
 
-/* 手機端表格轉卡片 */
+.context-info {
+  margin-top: 10px;
+  border: 1px solid var(--gold-dark);
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 10px;
+  color: var(--light-gray);
+  font-size: 0.9rem;
+}
+.detail-header{
+  margin-bottom: 20px;
+  text-align: left;
+}
+.detail-footer{
+  margin-top: 20px;
+  text-align: left;
+}
+.total-value{
+  display: inline-block;
+  float: right;
+}
+.footer-notes{
+  margin-top: 10px;
+  margin-bottom: 15px;
+  color: var(--dark-gray);
+  font-size: 0.9rem;
+}
+
+.action-cell {
+  display: flex;
+  flex-direction: row;
+  margin-right: 10px;
+}
+
 @media (max-width: 768px) {
-    .item-table thead { display: none; }
-    .item-table tr { 
-        display: block; 
-        margin-bottom: 15px; 
-        border: 1px solid var(--gold-dark);
-    }
-    .item-table td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-        text-align: right;
-        border-bottom: 1px solid rgba(139, 115, 85, 0.1);
-    }
-    .item-table td::before {
-        content: attr(data-label);
-        font-weight: bold;
-        color: var(--gold);
-        margin-right: 10px;
-    }
+  /* 預設：將一般表格轉為卡片化堆疊 */
+  .item-table thead { 
+    display: none; 
+  }
+  
+  .item-table tr { 
+    display: block; 
+    margin-bottom: 15px; 
+  }
+
+  .item-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    text-align: right;
+  }
+
+  /* 核心修正：強制讓 detail-card 內的表格保持橫向排列 */
+
+  .audit-detail-card .inner-detail-table {
+    display: table !important; /* 強制恢復表格佈局 */
+    margin-bottom: 0;
+  }
+
+  .detail-container-cell .item-table thead,
+  .audit-detail-card .inner-detail-table thead {
+    display: table-header-group !important; /* 顯示表頭 */
+  }
+
+  .detail-container-cell .item-table tr,
+  .audit-detail-card .inner-detail-table tr {
+    display: table-row !important; /* 恢復列模式 */
+  }
+
+  .audit-detail-card .inner-detail-table td,
+  .audit-detail-card .inner-detail-table th {
+    display: table-cell !important; /* 恢復格模式 */
+    font-size: 0.85rem; /* 手機端橫向排列需縮小字體以防溢出 */
+    text-align: left !important;
+  }
+
+  /* 隱藏詳情表格內的 data-label 偽元素 */
+  .detail-container-cell .item-table td::before,
+  .audit-detail-card .inner-detail-table td::before {
+    display: none !important;
+  }
+
+  /* 一般表格的標籤樣式 (非詳情表格) */
+  .item-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    margin-right: 10px;
+    text-align: left;
+  }
+
+  /* 行動端輸入框字體強制 16px 防止縮放 */
+  input, select, textarea { 
+    font-size: 16px !important; 
+  }
 }
 
 /* ==========================================
-   5. 頁面特定樣式 (Page Specific)
+   6. 頁面特定樣式 (Page Specific)
    ========================================== */
 
 /* 首頁營業狀況 (Home.jsx) */
 .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
 }
 
 .status-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--gold-dark);
-    padding: 30px;
-    text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--gold-dark);
+  padding: 30px;
+  text-align: center;
 }
 
 .status-value {
-    font-size: 2.5rem;
-    color: var(--gold);
-    font-weight: bold;
+  font-size: 2.5rem;
+  color: var(--gold);
+  font-weight: bold;
 }
 
 /* 座位管理 (SEAT.jsx) */
 .seat-management-layout {
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
 }
 
-.form-section { flex: 1; min-width: 300px; }
-.preview-section { flex: 2; min-width: 300px; }
+.form-section {
+  flex: 1;
+  min-width: 300px;
+}
+
+.preview-section {
+  flex: 2;
+  min-width: 300px;
+}
 
 .canvas-scroll-viewport {
-    background: #0c0b0a;
-    border: 1px solid var(--gold-dark);
-    overflow: auto;
-    height: 500px;
-    position: relative;
+  background: #0c0b0a;
+  border: 1px solid var(--gold-dark);
+  overflow: auto;
+  height: 500px;
+  position: relative;
+  /* 讓行動裝置滾動更順暢 */
+  -webkit-overflow-scrolling: touch;
 }
 
 .floor-plan-grid {
-    position: relative;
-    background-image: linear-gradient(rgba(139, 115, 85, 0.1) 1px, transparent 1px), 
-                      linear-gradient(90deg, rgba(139, 115, 85, 0.1) 1px, transparent 1px);
+  position: relative;
+  background-image: linear-gradient(rgba(139, 115, 85, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 115, 85, 0.1) 1px, transparent 1px);
 }
 
 .seat-unit-box {
-    position: absolute;
-    background: var(--gold-dark);
-    border: 1px solid var(--gold);
-    color: var(--black);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    cursor: grab;
-    transition: box-shadow 0.2s;
+  position: absolute;
+  background: var(--gold-dark);
+  border: 1px solid var(--gold);
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: grab;
+  transition: box-shadow 0.2s;
+  /* 防止拖動時被選中文字 */
+  user-select: none;
 }
 
 .seat-unit-box.is-active {
-    background: var(--gold);
-    box-shadow: 0 0 15px var(--gold);
-    z-index: 10;
+  background: var(--gold);
+  box-shadow: 0 0 15px var(--gold);
+  z-index: 10;
 }
 
 /* 出餐順序 (REVENUE.jsx) */
-.row-urgent { border-left: 6px solid var(--error-red) !important; }
-.timer-urgent { color: var(--error-red); animation: blink 1s infinite; }
+.row-urgent {
+  border-left: 6px solid var(--error-red) !important;
+}
 
-@keyframes blink { 50% { opacity: 0.5; } }
+.timer-urgent {
+  color: var(--error-red);
+  animation: blink 1s infinite;
+}
 
-/* 稽核管理 (AUDIT.jsx) - PDF 專用 */
+@keyframes blink {
+  50% {
+    opacity: 0.5;
+  }
+}
+
 .audit-detail-card {
-    background: #fff !important; /* PDF 必須是白底 */
-    color: #000 !important;
-    padding: 40px;
-    margin: 20px;
-    border-radius: 0;
+  
+  background: #fff !important;
+  color: #000 !important;
+  padding: 40px;
+  margin-top: 20px;
+  border-radius: 0;
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
 }
 
 .inner-detail-table {
-    width: 100%;
-    margin: 20px 0;
-    color: #000 !important;
+  width: 100%;
+  border-spacing: 0;
 }
 
-.inner-detail-table th { color: #333; border-bottom: 2px solid #333; }
-.inner-detail-table td { background: transparent !important; color: #000 !important; border-bottom: 1px solid #ddd; }
+.inner-detail-table th {
+  color: #333;
+  border-bottom: 1px solid #333;
+}
 
-.no-pdf { display: block; } /* 匯出時會被 JS 隱藏 */
+.inner-detail-table td {
+  background: transparent !important;
+  border-bottom: 1px solid #ddd;
+}
 
-.price-cell strong { color: var(--gold); }
-.discount-tag { color: var(--error-red); font-size: 0.8rem; margin-left: 5px; }
+.main-container {
+  width: 100vw;
+  background: linear-gradient(180deg, #0c0b0a 0%, var(--dark-gray) 100%);
+  min-height: 100vh;
+}
