@@ -491,6 +491,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   animation: blink 1s infinite;
 }
 
+.timer-text {
+  margin-left: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--light-white);
+}
+
 @keyframes blink {
   50% {
     opacity: 0.5;
