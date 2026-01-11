@@ -561,16 +561,20 @@ select {
   }
 
   /* 核心修正：強制讓 detail-card 內的表格保持橫向排列 */
-
+  .audit-detail-card{
+    font-size: 0.6rem;
+  }
   .audit-detail-card .inner-detail-table {
     display: table !important;
+    
     /* 強制恢復表格佈局 */
-    margin-bottom: 0;
+
   }
 
   .detail-container-cell .item-table thead,
   .audit-detail-card .inner-detail-table thead {
     display: table-header-group !important;
+    word-break: keep-all;
     /* 顯示表頭 */
   }
 
@@ -582,9 +586,9 @@ select {
 
   .audit-detail-card .inner-detail-table td,
   .audit-detail-card .inner-detail-table th {
+    padding: 5px 15px !important;
     display: table-cell !important;
     /* 恢復格模式 */
-    font-size: 0.85rem;
     /* 手機端橫向排列需縮小字體以防溢出 */
     text-align: left !important;
   }
@@ -599,7 +603,6 @@ select {
   .item-table td::before {
     content: attr(data-label);
     font-weight: bold;
-    margin-right: 10px;
     text-align: left;
   }
 
@@ -726,15 +729,14 @@ select {
 }
 
 .audit-detail-card {
-
   background: #fff !important;
   color: #000 !important;
   padding: 40px;
   margin-top: 20px;
   border-radius: 0;
   width: 100%;
-  max-width: 800px;
-  margin: auto;
+  max-width: 720px;
+
 }
 
 .inner-detail-table {
