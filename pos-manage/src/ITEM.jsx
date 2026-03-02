@@ -16,7 +16,7 @@ const ITEM = ({ API_BASE }) => {
     { value: 'TASTING_MENU', label: '品味菜單 (TASTING_MENU)' },
     { value: 'SIGNATURE', label: '原創 (SIGNATURE)' },
     { value: 'TASTING_GIN', label: '單杯 琴酒 (TASTING GIN)' },
-    { value: 'TASTING_WHISKY', label: '單杯 威士忌 (TASTING WHISKY)' },
+    { value: 'TASTING_WHISKEY', label: '單杯 威士忌 (TASTING WHISKEY)' },
     { value: 'TASTING_RUM', label: '單杯 蘭姆 (TASTING RUM)' },
     { value: 'TASTING_VODKA', label: '單杯 伏特加 (TASTING VODKA)' },
     { value: 'TASTING_TEQUILA', label: '單杯 龍舌蘭 (TASTING TEQUILA)' },
