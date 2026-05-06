@@ -275,11 +275,12 @@ const ITEM = ({ API_BASE }) => {
               {sortedItems.map(item => (
                 <tr key={item.ITEM_ID}>
                   <td data-label="啟用" className="active-checkbox-cell">
-                    <input
-                      type="checkbox"
-                      checked={item.is_active === 1 || item.is_active === '1'}
-                      onChange={() => toggleActive(item.ITEM_ID, item.is_active)}
-                    />
+                    <button
+                      className={`active-toggle-btn ${item.is_active === 1 || item.is_active === '1' ? 'active' : 'inactive'}`}
+                      onClick={() => toggleActive(item.ITEM_ID, item.is_active)}
+                    >
+                      {item.is_active === 1 || item.is_active === '1' ? '已啟用' : '未啟用'}
+                    </button>
                   </td>
                   <td data-label="ID">{item.ITEM_ID}</td>
                   <td data-label="圖片">

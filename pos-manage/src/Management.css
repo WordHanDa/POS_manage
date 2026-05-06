@@ -544,10 +544,6 @@ select {
   text-align: center;
   padding: 15px;
   min-width: 50px;
-  overflow: visible !important;
-  display: table-cell !important;
-  visibility: visible !important;
-  opacity: 1 !important;
 }
 
 .active-checkbox-cell input[type="checkbox"] {
@@ -555,16 +551,7 @@ select {
   height: 18px;
   cursor: pointer;
   accent-color: var(--gold);
-  margin: 0 !important;
-  padding: 0 !important;
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  position: static !important;
-  clip: auto !important;
-  clip-path: none !important;
 }
-
 
 @media (max-width: 768px) {
 
@@ -594,6 +581,11 @@ select {
 
   .active-checkbox-cell input[type="checkbox"] {
     margin: 0;
+  }
+
+  .active-toggle-btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
   }
 
   /* 核心修正：強制讓 detail-card 內的表格保持橫向排列 */
