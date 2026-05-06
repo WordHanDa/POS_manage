@@ -7,6 +7,7 @@ import ORDER from './ORDER.jsx'
 import ORDER_DETAIL from './ORDER_DETAIL.jsx'
 import REVENUE from './REVENUE.jsx'
 import AUDIT from './AUDIT.jsx'
+import EVENT from './EVENT.jsx'
 import './Management.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api';
