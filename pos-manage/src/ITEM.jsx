@@ -125,6 +125,22 @@ const ITEM = ({ API_BASE }) => {
     setEditingItem({ ...item });
   };
 
+  const toggleActive = async (id, currentActive) => {
+    try {
+      const response = await fetch(`${API_BASE}/ITEM/${id}/active`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          is_active: currentActive === 1 ? 0 : 1
+        })
+      });
+      if (!response.ok) throw new Error('Failed to toggle active status');
+      fetchItems();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   useEffect(() => {
     fetchItems();
   }, []);
@@ -261,8 +277,8 @@ const ITEM = ({ API_BASE }) => {
                   <td data-label="啟用" className="active-checkbox-cell">
                     <input
                       type="checkbox"
-                      checked={item.is_active === 1 || item.is_active === '1' || item.is_active === true}
-                      readOnly
+                      checked={item.is_active === 1 || item.is_active === '1'}
+                      onChange={() => toggleActive(item.ITEM_ID, item.is_active)}
                     />
                   </td>
                   <td data-label="ID">{item.ITEM_ID}</td>
