@@ -245,6 +245,7 @@ const ITEM = ({ API_BASE }) => {
           <table className="item-table">
             <thead>
               <tr>
+                <th>啟用</th>
                 <th className="sortable-th" onClick={() => requestSort('ITEM_ID')}>ID {getSortIcon('ITEM_ID')}</th>
                 <th>圖片</th>
                 <th className="sortable-th" onClick={() => requestSort('ITEM_NAME')}>名稱 {getSortIcon('ITEM_NAME')}</th>
@@ -257,6 +258,13 @@ const ITEM = ({ API_BASE }) => {
             <tbody>
               {sortedItems.map(item => (
                 <tr key={item.ITEM_ID}>
+                  <td data-label="啟用" className="active-checkbox-cell">
+                    <input
+                      type="checkbox"
+                      checked={item.is_active === 1 || item.is_active === '1' || item.is_active === true}
+                      readOnly
+                    />
+                  </td>
                   <td data-label="ID">{item.ITEM_ID}</td>
                   <td data-label="圖片">
                     {item.PICTURE_URL ? (
