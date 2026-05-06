@@ -98,6 +98,11 @@ const EVENT = ({ API_BASE }) => {
             <label>內容</label>
             <input type="text" className="form-input" placeholder="事件內容" value={formData.EVENT_CONTANT} onChange={e => setFormData({...formData, EVENT_CONTANT: e.target.value})} />
           </div>
+
+          <div className="form-group">
+            <label>注意事項</label>
+            <input type="text" className="form-input" placeholder="事件注意事項" value={formData.EVENT_NOTE} onChange={e => setFormData({...formData, EVENT_NOTE: e.target.value})} />
+          </div>
           
           <div className="button-group">
             <button type="submit" className="btn-primary">新增事件</button>
