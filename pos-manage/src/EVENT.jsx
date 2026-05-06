@@ -1,90 +1,125 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 const EVENT = ({ API_BASE }) => {
-  const [events, setEvents] = useState([]);
-  const [formData, setFormData] = useState({
-    EVENT_START_DATE: '',
-    EVENT_END_DATE: '',
-    EVENT_CONTANT: '',
-    EVENT_NOTE: ''
-  });
+  // 設定預設日期為今日 (UTC+8)
+  const getTodayUTC8 = () => {
+    return new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'Asia/Taipei',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date());
+  };
 
-  // 讀取資料
-  const fetchEvents = async () => {
+  const [selectedDate, setSelectedDate] = useState(getTodayUTC8());
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [now, setNow] = useState(new Date());
+
+  // 獲取事件列表
+  const fetchEvents = async (date) => {
+    setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE}/EVENT`);
-      setEvents(res.data);
+      const response = await fetch(`${API_BASE}/EVENT?date=${date}`);
+      if (!response.ok) throw new Error('網路回應不正確');
+      const data = await response.json();
+      setEvents(data);
     } catch (err) {
       console.error("讀取失敗:", err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // 刪除事件邏輯
+  const handleDelete = async (id) => {
+    if (!window.confirm("確定要刪除此事件嗎？")) return;
+    try {
+      const response = await fetch(`${API_BASE}/EVENT`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ EVENT_ID: id })
+      });
+      if (response.ok) fetchEvents(selectedDate);
+      else alert("刪除失敗");
+    } catch (err) {
+      console.error("刪除請求出錯:", err);
+    }
+  };
+
+  // 輪詢與計時驅動
+  useEffect(() => {
+    fetchEvents(selectedDate);
+    const interval = setInterval(() => fetchEvents(selectedDate), 30000);
+    return () => clearInterval(interval);
+  }, [selectedDate]);
 
   useEffect(() => {
-    fetchEvents();
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
-
-  // 新增事件
-  const handleAdd = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(`${API_BASE}/EVENT`, formData);
-      setFormData({ EVENT_START_DATE: '', EVENT_END_DATE: '', EVENT_CONTANT: '', EVENT_NOTE: '' });
-      fetchEvents(); // 重新整理列表
-    } catch (err) {
-      alert("新增失敗");
-    }
-  };
-
-  // 刪除事件
-  const handleDelete = async (id) => {
-    if (!window.confirm("確定要刪除嗎？")) return;
-    try {
-      await axios.delete(`${API_BASE}/EVENT`, { data: { EVENT_ID: id } });
-      fetchEvents();
-    } catch (err) {
-      alert("刪除失敗");
-    }
-  };
 
   return (
     <div className="container">
-      <h1>事件管理</h1>
+      <header className="page-header">
+        <h1>事件管理</h1>
+      </header>
 
-      {/* 新增表單 */}
-      <form onSubmit={handleAdd} style={{ marginBottom: '20px' }}>
-        <input type="date" value={formData.EVENT_START_DATE} onChange={e => setFormData({...formData, EVENT_START_DATE: e.target.value})} required />
-        <input type="text" placeholder="結束日期" value={formData.EVENT_END_DATE} onChange={e => setFormData({...formData, EVENT_END_DATE: e.target.value})} />
-        <input type="text" placeholder="內容" value={formData.EVENT_CONTANT} onChange={e => setFormData({...formData, EVENT_CONTANT: e.target.value})} />
-        <input type="text" placeholder="備註" value={formData.EVENT_NOTE} onChange={e => setFormData({...formData, EVENT_NOTE: e.target.value})} />
-        <button type="submit">新增事件</button>
-      </form>
+      <div className="revenue-filter-card">
+        <input 
+          type="date" 
+          className="date-picker-dark"
+          value={selectedDate} 
+          onChange={(e) => setSelectedDate(e.target.value)} 
+        />
+        <div className="pending-badge-text">
+          共有事件：<strong className="stats-badge-count">{events.length}</strong> 項
+        </div>
+      </div>
 
-      {/* 資料列表 */}
-      <table className="table">
-        <thead>
-          <tr>
-            <th>開始日期</th>
-            <th>結束日期</th>
-            <th>內容</th>
-            <th>備註</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          {events.map(ev => (
-            <tr key={ev.EVENT_ID}>
-              <td>{ev.EVENT_START_DATE}</td>
-              <td>{ev.EVENT_END_DATE}</td>
-              <td>{ev.EVENT_CONTANT}</td>
-              <td>{ev.EVENT_NOTE}</td>
-              <td>
-                <button onClick={() => handleDelete(ev.EVENT_ID)}>刪除</button>
-              </td>
+      {loading && events.length === 0 ? (
+        <div className="loading-container"><p>載入中...</p></div>
+      ) : (
+        <table className="item-table">
+          <thead>
+            <tr>
+              <th>開始日期</th>
+              <th>結束日期</th>
+              <th>事件內容</th>
+              <th>備註</th>
+              <th>操作</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {events.length > 0 ? (
+              events.map((event) => {
+                // 簡易邏輯：判斷事件是否已結束
+                const isEnded = new Date(event.EVENT_END_DATE) < now;
+                return (
+                  <tr key={event.EVENT_ID} className={isEnded ? "row-done" : "row-normal"}>
+                    <td data-label="開始日期">{event.EVENT_START_DATE}</td>
+                    <td data-label="結束日期">{event.EVENT_END_DATE}</td>
+                    <td data-label="內容">
+                      <div className="item-name-bold">{event.EVENT_CONTANT}</div>
+                    </td>
+                    <td data-label="備註">{event.EVENT_NOTE || '-'}</td>
+                    <td data-label="操作">
+                      <button 
+                        className="btn-primary btn-kitchen-action"
+                        onClick={() => handleDelete(event.EVENT_ID)}
+                      >
+                        刪除
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr><td colSpan="5" className="empty-cell">目前沒有事件資料</td></tr>
+            )}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };
