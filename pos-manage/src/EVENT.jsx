@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 const EVENT = ({ API_BASE }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     EVENT_START_DATE: '',
     EVENT_END_DATE: '',
@@ -52,6 +53,27 @@ const EVENT = ({ API_BASE }) => {
       console.error("前端請求異常:", err);
       alert("前端請求異常，請檢查網路狀態");
     }
+  };
+
+  const handleEdit = (event) => {
+    setEditingId(event.EVENT_ID);
+    setFormData({
+      EVENT_START_DATE: event.EVENT_START_DATE,
+      EVENT_END_DATE: event.EVENT_END_DATE,
+      EVENT_CONTANT: event.EVENT_CONTANT,
+      EVENT_NOTE: event.EVENT_NOTE
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // 自動捲動到表單
+  };
+  const handleEdit = (event) => {
+    setEditingId(event.EVENT_ID);
+    setFormData({
+      EVENT_START_DATE: event.EVENT_START_DATE,
+      EVENT_END_DATE: event.EVENT_END_DATE,
+      EVENT_CONTANT: event.EVENT_CONTANT,
+      EVENT_NOTE: event.EVENT_NOTE
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // 自動捲動到表單
   };
 
   // 刪除事件
@@ -109,8 +131,16 @@ const EVENT = ({ API_BASE }) => {
           </div>
           
           <div className="button-group">
-            <button type="submit" className="btn-primary">新增事件</button>
-          </div>
+    <button type="submit" className="btn-primary">
+      {editingId ? "更新事件" : "新增事件"}
+    </button>
+    {editingId && (
+      <button type="button" className="btn-secondary" onClick={() => {
+        setEditingId(null);
+        setFormData({ EVENT_START_DATE: '', EVENT_END_DATE: '', EVENT_CONTANT: '', EVENT_NOTE: '' });
+      }}>取消編輯</button>
+    )}
+  </div>
         </form>
 
         {/* 表格容器 */}
@@ -134,6 +164,7 @@ const EVENT = ({ API_BASE }) => {
                   <td data-label="內容">{event.EVENT_CONTANT}</td>
                   <td data-label="操作" className="action-cell">
                     <button onClick={() => handleDelete(event.EVENT_ID)} className="btn-delete">刪除</button>
+                    <button onClick={() => handleEdit(event.EVENT_ID)} className="btn-edit">編輯</button>
                   </td>
                 </tr>
               ))}
