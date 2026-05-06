@@ -261,7 +261,6 @@ const ITEM = ({ API_BASE }) => {
           <table className="item-table">
             <thead>
               <tr>
-                <th>啟用</th>
                 <th className="sortable-th" onClick={() => requestSort('ITEM_ID')}>ID {getSortIcon('ITEM_ID')}</th>
                 <th>圖片</th>
                 <th className="sortable-th" onClick={() => requestSort('ITEM_NAME')}>名稱 {getSortIcon('ITEM_NAME')}</th>
@@ -274,14 +273,6 @@ const ITEM = ({ API_BASE }) => {
             <tbody>
               {sortedItems.map(item => (
                 <tr key={item.ITEM_ID}>
-                  <td data-label="啟用" className="active-checkbox-cell">
-                    <button
-                      className={`active-toggle-btn ${item.is_active === 1 || item.is_active === '1' ? 'active' : 'inactive'}`}
-                      onClick={() => toggleActive(item.ITEM_ID, item.is_active)}
-                    >
-                      {item.is_active === 1 || item.is_active === '1' ? '已啟用' : '未啟用'}
-                    </button>
-                  </td>
                   <td data-label="ID">{item.ITEM_ID}</td>
                   <td data-label="圖片">
                     {item.PICTURE_URL ? (
@@ -306,10 +297,7 @@ const ITEM = ({ API_BASE }) => {
                   <td data-label="操作" className="action-cell">
                     <button className="btn-edit" onClick={() => handleEdit(item)}>編輯</button>
                     <button className="btn-delete" onClick={() => deleteItem(item.ITEM_ID)}>刪除</button>
-                    <button
-                      className={`active-toggle-btn ${item.is_active === 1 || item.is_active === '1' ? 'active' : 'inactive'}`}
-                      onClick={() => toggleActive(item.ITEM_ID, item.is_active)}
-                    >
+                    <button className="btn-edit" onClick={() => toggleActive(item.ITEM_ID, item.is_active)}>
                       {item.is_active === 1 || item.is_active === '1' ? '已啟用' : '未啟用'}
                     </button>
                   </td>
