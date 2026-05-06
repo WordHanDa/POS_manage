@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const ITEM = ({ API_BASE }) => {
   const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', pictureUrl: '', type: 'SPARKLING', isActive: true }); // 預設值
+  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', pictureUrl: '', type: 'SPARKLING' }); // 預設值
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -29,7 +29,7 @@ const ITEM = ({ API_BASE }) => {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/ITEM?isActive=1`);
+      const response = await fetch(`${API_BASE}/ITEM`);
       if (!response.ok) throw new Error('Failed to fetch items');
       const data = await response.json();
       setItems(data);
@@ -73,12 +73,11 @@ const ITEM = ({ API_BASE }) => {
           price: parseFloat(newItem.price),
           description: newItem.description,
           pictureUrl: newItem.pictureUrl,
-          type: newItem.type,
-          isActive: newItem.isActive
+          type: newItem.type
         })
       });
       if (!response.ok) throw new Error('Failed to add item');
-      setNewItem({ name: '', price: '', description: '', pictureUrl: '', type: 'SPARKLING', isActive: true });
+      setNewItem({ name: '', price: '', description: '', pictureUrl: '', type: 'SPARKLING' });
       fetchItems();
     } catch (err) {
       setError(err.message);
@@ -95,8 +94,7 @@ const ITEM = ({ API_BASE }) => {
           price: parseFloat(editingItem.ITEM_PRICE),
           description: editingItem.Description,
           pictureUrl: editingItem.PICTURE_URL,
-          type: editingItem.Type,
-          isActive: editingItem.isActive ?? true
+          type: editingItem.Type
         })
       });
       if (!response.ok) throw new Error('Failed to update item');
@@ -204,19 +202,6 @@ const ITEM = ({ API_BASE }) => {
                 <option key={type.value} value={type.value}>{type.label}</option>
               ))}
             </select>
-          </div>
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={editingItem ? !!editingItem.isActive : newItem.isActive}
-                onChange={(e) => editingItem
-                  ? setEditingItem({ ...editingItem, isActive: e.target.checked })
-                  : setNewItem({ ...newItem, isActive: e.target.checked })
-                }
-              />
-              啟用商品
-            </label>
           </div>
           <div className="form-group">
             <label>圖片連結</label>
