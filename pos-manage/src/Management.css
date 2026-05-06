@@ -544,6 +544,10 @@ select {
   text-align: center;
   padding: 15px;
   min-width: 50px;
+  overflow: visible !important;
+  display: table-cell !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .active-checkbox-cell input[type="checkbox"] {
@@ -551,7 +555,16 @@ select {
   height: 18px;
   cursor: pointer;
   accent-color: var(--gold);
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: static !important;
+  clip: auto !important;
+  clip-path: none !important;
 }
+
 
 @media (max-width: 768px) {
 
