@@ -103,7 +103,7 @@ const EVENT = ({ API_BASE }) => {
       {/* 使用 .main-container 來處理內距與置中 */}
       <main className="main-container">
         <header>
-          <h1>事件管理</h1>
+          <h1>優惠活動</h1>
         </header>
 
         {/* 使用 .card 類別來套用深色背景與邊框 */}
