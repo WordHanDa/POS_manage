@@ -622,11 +622,17 @@ select {
     display: none !important;
   }
 
-  /* 一般表格的標籤樣式 (非詳情表格) */
+  /* 一般表格的標籤樣式 (非詳情表格及非 checkbox 儲存格) */
   .item-table td::before {
     content: attr(data-label);
     font-weight: bold;
     text-align: left;
+  }
+
+  /* 排除 checkbox 儲存格的 label 顯示 */
+  .active-checkbox-cell::before {
+    content: none !important;
+    display: none !important;
   }
 
   /* 行動端輸入框字體強制 16px 防止縮放 */
