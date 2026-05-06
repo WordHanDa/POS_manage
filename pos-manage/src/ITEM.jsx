@@ -306,6 +306,12 @@ const ITEM = ({ API_BASE }) => {
                   <td data-label="操作" className="action-cell">
                     <button className="btn-edit" onClick={() => handleEdit(item)}>編輯</button>
                     <button className="btn-delete" onClick={() => deleteItem(item.ITEM_ID)}>刪除</button>
+                    <button
+                      className={`active-toggle-btn ${item.is_active === 1 || item.is_active === '1' ? 'active' : 'inactive'}`}
+                      onClick={() => toggleActive(item.ITEM_ID, item.is_active)}
+                    >
+                      {item.is_active === 1 || item.is_active === '1' ? '已啟用' : '未啟用'}
+                    </button>
                   </td>
                 </tr>
               ))}
