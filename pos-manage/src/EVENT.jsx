@@ -54,17 +54,7 @@ const EVENT = ({ API_BASE }) => {
       alert("前端請求異常，請檢查網路狀態");
     }
   };
-
-  const handleEdit = (event) => {
-    setEditingId(event.EVENT_ID);
-    setFormData({
-      EVENT_START_DATE: event.EVENT_START_DATE,
-      EVENT_END_DATE: event.EVENT_END_DATE,
-      EVENT_CONTANT: event.EVENT_CONTANT,
-      EVENT_NOTE: event.EVENT_NOTE
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // 自動捲動到表單
-  };
+  
   const handleEdit = (event) => {
     setEditingId(event.EVENT_ID);
     setFormData({
