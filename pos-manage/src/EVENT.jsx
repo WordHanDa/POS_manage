@@ -10,10 +10,68 @@ const EVENT = ({ API_BASE }) => {
     EVENT_NOTE: ''
   });
 
-  // ... (fetchEvents, handleAddEvent, handleDelete 等邏輯保持不變)
+  // 統一的資料獲取方法
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/EVENT`);
+      if (!response.ok) throw new Error('伺服器回應錯誤');
+      const data = await response.json();
+      setEvents(data);
+    } catch (err) {
+      console.error("讀取事件失敗:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [API_BASE]);
+
+  // 新增事件
+  const handleAddEvent = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_BASE}/EVENT`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      if (response.ok) {
+        setFormData({ EVENT_START_DATE: '', EVENT_END_DATE: '', EVENT_CONTANT: '', EVENT_NOTE: '' });
+        fetchEvents(); // 重新整理列表
+      } else {
+        alert("新增失敗");
+      }
+    } catch (err) {
+      console.error("新增請求出錯:", err);
+    }
+  };
+
+  // 刪除事件
+  const handleDelete = async (id) => {
+    if (!window.confirm("確定要刪除此事件嗎？")) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/EVENT`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ EVENT_ID: id })
+      });
+
+      if (response.ok) {
+        fetchEvents();
+      } else {
+        alert("刪除失敗");
+      }
+    } catch (err) {
+      console.error("刪除請求出錯:", err);
+    }
+  };
 
   return (
-    // 使用 .app-layout 作為最外層背景容器
     <div className="app-layout">
       {/* 這裡若有 navbar 元件可加入，若無則可省略 */}
       
