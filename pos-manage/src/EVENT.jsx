@@ -39,14 +39,18 @@ const EVENT = ({ API_BASE }) => {
         body: JSON.stringify(formData)
       });
       
+      const result = await response.json(); // 取得伺服器回傳的詳細錯誤
+      
       if (response.ok) {
         setFormData({ EVENT_START_DATE: '', EVENT_END_DATE: '', EVENT_CONTANT: '', EVENT_NOTE: '' });
-        fetchEvents(); // 重新整理列表
+        fetchEvents();
       } else {
-        alert("新增失敗");
+        console.error("後端回傳錯誤:", result); // 這裡會顯示原因，例如：欄位名稱不符或資料庫錯誤
+        alert(`新增失敗: ${result.error || '未知錯誤'}`);
       }
     } catch (err) {
-      console.error("新增請求出錯:", err);
+      console.error("前端請求異常:", err);
+      alert("前端請求異常，請檢查網路狀態");
     }
   };
 
