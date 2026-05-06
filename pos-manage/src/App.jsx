@@ -21,6 +21,7 @@ function App() {
     { to: "/", label: "系統首頁" },
     { to: "/ITEM", label: "品項管理" },
     { to: "/SEAT", label: "座位管理" },
+    { to: "/EVENT", label: "事件管理" },
     { to: "/ORDER", label: "訂單管理" },
     { to: "/REVENUE", label: "出餐順序" },
     { to: "/AUDIT", label: "營業報表" },
@@ -66,6 +67,7 @@ function App() {
             <Route path="/REVENUE" element={<REVENUE API_BASE={API_BASE} />} />
             <Route path="/ORDER/:orderId" element={<ORDER_DETAIL API_BASE={API_BASE} />} />
             <Route path="/AUDIT" element={<AUDIT API_BASE={API_BASE} />} />
+            <Route path="/EVENT" element={<EVENT API_BASE={API_BASE} />} />
           </Routes>
         </div>
       </div>
