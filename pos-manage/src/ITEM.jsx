@@ -250,6 +250,7 @@ const ITEM = ({ API_BASE }) => {
                 <th className="sortable-th" onClick={() => requestSort('ITEM_NAME')}>名稱 {getSortIcon('ITEM_NAME')}</th>
                 <th className="sortable-th" onClick={() => requestSort('Type')}>類型 {getSortIcon('Type')}</th>
                 <th className="sortable-th" onClick={() => requestSort('ITEM_PRICE')}>價格 {getSortIcon('ITEM_PRICE')}</th>
+                <th>啟用</th>
                 <th>描述</th>
                 <th>操作</th>
               </tr>
@@ -271,6 +272,13 @@ const ITEM = ({ API_BASE }) => {
                   <td data-label="名稱" className="item-name-cell">{item.ITEM_NAME}</td>
                   <td data-label="類型"><span className="type-badge">{item.Type}</span></td>
                   <td data-label="價格" className="item-price-tag">${item.ITEM_PRICE}</td>
+                  <td data-label="啟用" className="active-checkbox-cell">
+                    <input
+                      type="checkbox"
+                      checked={item.is_active === 1 || item.is_active === '1'}
+                      readOnly
+                    />
+                  </td>
                   <td
                     data-label="描述"
                     className={`description-cell ${expandedId === item.ITEM_ID ? 'expanded' : ''}`}
