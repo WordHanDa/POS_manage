@@ -32,39 +32,48 @@ const EVENT = ({ API_BASE }) => {
 
   // 新增事件
   const handleAddEvent = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`${API_BASE}/EVENT`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      
-      const result = await response.json(); // 取得伺服器回傳的詳細錯誤
-      
-      if (response.ok) {
-        setFormData({ EVENT_START_DATE: '', EVENT_END_DATE: '', EVENT_CONTANT: '', EVENT_NOTE: '' });
-        fetchEvents();
-      } else {
-        console.error("後端回傳錯誤:", result); // 這裡會顯示原因，例如：欄位名稱不符或資料庫錯誤
-        alert(`新增失敗: ${result.error || '未知錯誤'}`);
-      }
-    } catch (err) {
-      console.error("前端請求異常:", err);
-      alert("前端請求異常，請檢查網路狀態");
-    }
-  };
+  e.preventDefault();
   
-  const handleEdit = (event) => {
-    setEditingId(event.EVENT_ID);
-    setFormData({
-      EVENT_START_DATE: event.EVENT_START_DATE,
-      EVENT_END_DATE: event.EVENT_END_DATE,
-      EVENT_CONTANT: event.EVENT_CONTANT,
-      EVENT_NOTE: event.EVENT_NOTE
+  // 決定使用的方法與路徑
+  const method = editingId ? 'PUT' : 'POST';
+  // 如果是更新，通常需要把 ID 一併傳給後端
+  const bodyData = editingId ? { ...formData, EVENT_ID: editingId } : formData;
+
+  try {
+    const response = await fetch(`${API_BASE}/EVENT`, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bodyData)
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // 自動捲動到表單
-  };
+    
+    if (response.ok) {
+      // 成功後清空表單並重置編輯狀態
+      setFormData({ EVENT_START_DATE: '', EVENT_END_DATE: '', EVENT_CONTANT: '', EVENT_NOTE: '' });
+      setEditingId(null);
+      fetchEvents();
+    } else {
+      const result = await response.json();
+      alert(`操作失敗: ${result.error || '未知錯誤'}`);
+    }
+  } catch (err) {
+    console.error("請求異常:", err);
+  }
+};
+  
+  const handleEdit = (id) => {
+  // 從現有的 events 陣列中找到該筆資料
+  const eventToEdit = events.find((e) => e.EVENT_ID === id);
+  if (eventToEdit) {
+    setEditingId(id); // 設定正在編輯的 ID
+    setFormData({
+      EVENT_START_DATE: eventToEdit.EVENT_START_DATE,
+      EVENT_END_DATE: eventToEdit.EVENT_END_DATE,
+      EVENT_CONTANT: eventToEdit.EVENT_CONTANT,
+      EVENT_NOTE: eventToEdit.EVENT_NOTE
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
 
   // 刪除事件
   const handleDelete = async (id) => {
