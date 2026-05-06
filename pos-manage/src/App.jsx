@@ -22,7 +22,7 @@ function App() {
     { to: "/", label: "系統首頁" },
     { to: "/ITEM", label: "品項管理" },
     { to: "/SEAT", label: "座位管理" },
-    { to: "/EVENT", label: "事件管理" },
+    { to: "/EVENT", label: "活動管理" },
     { to: "/ORDER", label: "訂單管理" },
     { to: "/REVENUE", label: "出餐順序" },
     { to: "/AUDIT", label: "營業報表" },
