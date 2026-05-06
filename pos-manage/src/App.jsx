@@ -9,7 +9,7 @@ import REVENUE from './REVENUE.jsx'
 import AUDIT from './AUDIT.jsx'
 import './Management.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE || '/api';
+const API_BASE = 'https://posserver-sigma.vercel.app';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false); // 2. 控制選單狀態
