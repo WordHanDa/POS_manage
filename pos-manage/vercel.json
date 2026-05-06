@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://vercel.com/ys-chens-projects/pos_server/FkucDAcDMg84935paUxDkA5Dg8eU/$1"
+      "destination": "https://posserver-sigma.vercel.app/$1"
     },
     {
       "source": "/(.*)",
