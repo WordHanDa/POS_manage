@@ -6,7 +6,6 @@ const ITEM = ({ API_BASE }) => {
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState(null);
 
   // --- 定義品項種類選項 ---
   const ITEM_TYPES = [
@@ -29,9 +28,8 @@ const ITEM = ({ API_BASE }) => {
   // ... (fetchItems, requestSort, getSortedItems 邏輯保持不變) ...
   const fetchItems = async () => {
     setLoading(true);
-    setMessage(null);
     try {
-      const response = await fetch(`${API_BASE}/ITEM?isActive=1`);
+      const response = await fetch(`${API_BASE}/ITEM`);
       if (!response.ok) throw new Error('Failed to fetch items');
       const data = await response.json();
       setItems(data);
@@ -40,32 +38,6 @@ const ITEM = ({ API_BASE }) => {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleActiveToggle = async (id, currentActive) => {
-    const nextActive = currentActive === 1 ? 0 : 1;
-    setMessage(null);
-    setError(null);
-
-    try {
-      const response = await fetch(`${API_BASE}/ITEM/${id}/active`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: nextActive })
-      });
-      if (!response.ok) throw new Error('Failed to update item status');
-      const data = await response.json();
-
-      if (nextActive === 0) {
-        setItems((prevItems) => prevItems.filter((item) => item.ITEM_ID !== id));
-        setMessage('商品已停用');
-      } else {
-        setMessage('商品狀態已更新');
-        fetchItems();
-      }
-    } catch (err) {
-      setError('更新失敗，請稍後重試');
     }
   };
 
@@ -183,7 +155,6 @@ const ITEM = ({ API_BASE }) => {
       </header>
 
       {error && <div className="error-message-box">⚠️ {error}</div>}
-      {message && <div className="success-message-box">✅ {message}</div>}
 
       <form onSubmit={handleSubmit} className="item-form admin-card">
         <h2>{editingItem ? '編輯品項' : '新增品項'}</h2>
@@ -271,68 +242,50 @@ const ITEM = ({ API_BASE }) => {
       <section className="list-section">
         <h2>品項清單</h2>
         {loading ? <p className="loading-text">載入中...</p> : (
-          sortedItems.length === 0 ? (
-            <div className="empty-state-box">目前無啟用商品，請新增商品或啟用商品。</div>
-          ) : (
-            <>
-              <p className="hint-text">停用後即不顯示於清單</p>
-              <table className="item-table">
-                <thead>
-                  <tr>
-                    <th>啟用</th>
-                    <th className="sortable-th" onClick={() => requestSort('ITEM_ID')}>ID {getSortIcon('ITEM_ID')}</th>
-                    <th>圖片</th>
-                    <th className="sortable-th" onClick={() => requestSort('ITEM_NAME')}>名稱 {getSortIcon('ITEM_NAME')}</th>
-                    <th className="sortable-th" onClick={() => requestSort('Type')}>類型 {getSortIcon('Type')}</th>
-                    <th className="sortable-th" onClick={() => requestSort('ITEM_PRICE')}>價格 {getSortIcon('ITEM_PRICE')}</th>
-                    <th>描述</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedItems.map(item => (
-                    <tr key={item.ITEM_ID}>
-                      <td data-label="啟用">
-                        <label className="checkbox-label">
-                          <input
-                            type="checkbox"
-                            checked={item.is_active === 1}
-                            onChange={() => handleActiveToggle(item.ITEM_ID, item.is_active)}
-                          />
-                          <span>啟用</span>
-                        </label>
-                      </td>
-                      <td data-label="ID">{item.ITEM_ID}</td>
-                      <td data-label="圖片">
-                        {item.PICTURE_URL ? (
-                          <img
-                            src={"https://posfront-psi.vercel.app/" + item.PICTURE_URL}
-                            alt={item.ITEM_NAME}
-                            className="item-thumbnail"
-                            onError={handleImgError}
-                          />
-                        ) : <span className="no-img-text">無圖片</span>}
-                      </td>
-                      <td data-label="名稱" className="item-name-cell">{item.ITEM_NAME}</td>
-                      <td data-label="類型"><span className="type-badge">{item.Type}</span></td>
-                      <td data-label="價格" className="item-price-tag">${item.ITEM_PRICE}</td>
-                      <td
-                        data-label="描述"
-                        className={`description-cell ${expandedId === item.ITEM_ID ? 'expanded' : ''}`}
-                        onClick={() => toggleDescription(item.ITEM_ID)}
-                      >
-                        {item.Description}
-                      </td>
-                      <td data-label="操作" className="action-cell">
-                        <button className="btn-edit" onClick={() => handleEdit(item)}>編輯</button>
-                        <button className="btn-delete" onClick={() => deleteItem(item.ITEM_ID)}>刪除</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )
+          <table className="item-table">
+            <thead>
+              <tr>
+                <th className="sortable-th" onClick={() => requestSort('ITEM_ID')}>ID {getSortIcon('ITEM_ID')}</th>
+                <th>圖片</th>
+                <th className="sortable-th" onClick={() => requestSort('ITEM_NAME')}>名稱 {getSortIcon('ITEM_NAME')}</th>
+                <th className="sortable-th" onClick={() => requestSort('Type')}>類型 {getSortIcon('Type')}</th>
+                <th className="sortable-th" onClick={() => requestSort('ITEM_PRICE')}>價格 {getSortIcon('ITEM_PRICE')}</th>
+                <th>描述</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedItems.map(item => (
+                <tr key={item.ITEM_ID}>
+                  <td data-label="ID">{item.ITEM_ID}</td>
+                  <td data-label="圖片">
+                    {item.PICTURE_URL ? (
+                      <img
+                        src={"https://posfront-psi.vercel.app/" + item.PICTURE_URL}
+                        alt={item.ITEM_NAME}
+                        className="item-thumbnail"
+                        onError={handleImgError}
+                      />
+                    ) : <span className="no-img-text">無圖片</span>}
+                  </td>
+                  <td data-label="名稱" className="item-name-cell">{item.ITEM_NAME}</td>
+                  <td data-label="類型"><span className="type-badge">{item.Type}</span></td>
+                  <td data-label="價格" className="item-price-tag">${item.ITEM_PRICE}</td>
+                  <td
+                    data-label="描述"
+                    className={`description-cell ${expandedId === item.ITEM_ID ? 'expanded' : ''}`}
+                    onClick={() => toggleDescription(item.ITEM_ID)}
+                  >
+                    {item.Description}
+                  </td>
+                  <td data-label="操作" className="action-cell">
+                    <button className="btn-edit" onClick={() => handleEdit(item)}>編輯</button>
+                    <button className="btn-delete" onClick={() => deleteItem(item.ITEM_ID)}>刪除</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </section>
     </div>
