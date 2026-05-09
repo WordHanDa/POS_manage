@@ -277,11 +277,7 @@ const ITEM = ({ API_BASE }) => {
                   <td data-label="圖片">
                     {item.PICTURE_URL ? (
                       <img
-                        src={
-                          (item.PICTURE_URL?.startsWith("img/")
-                            ? "https://posfront-psi.vercel.app/"
-                            : "") + item.PICTURE_URL
-                        }
+                        src={item.PICTURE_URL}
                         alt={item.ITEM_NAME}
                         className="item-thumbnail"
                         onError={handleImgError}
