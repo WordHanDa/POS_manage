@@ -278,7 +278,7 @@ const ITEM = ({ API_BASE }) => {
                     {item.PICTURE_URL ? (
                       <img
                         src={
-                          (item.PICTURE_URL.startsWith("./")
+                          (item.PICTURE_URL.startsWith("/")
                             ? "https://posfront-psi.vercel.app/"
                             : "") + item.PICTURE_URL
                         }
