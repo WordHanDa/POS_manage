@@ -279,7 +279,7 @@ const ITEM = ({ API_BASE }) => {
                       <img
                         src={
                           (item.PICTURE_URL.startsWith("./")
-                            ? `https://posfront-psi.vercel.app/${item.PICTURE_URL.replace("./", "")}`
+                            ? `https://posfront-psi.vercel.app/${item.PICTURE_URL.replace("./", "","/img/")}`
                             : item.PICTURE_URL)
                         }
                         alt={item.ITEM_NAME}
