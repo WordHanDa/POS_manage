@@ -164,6 +164,24 @@ const ITEM = ({ API_BASE }) => {
     e.target.src = "https://posfront-psi.vercel.app/placeholder.png";
   };
 
+  const formatImageUrl = (url) => {
+    if (!url) return "https://posfront-psi.vercel.app/placeholder.png";
+
+    // 1. 處理 Google Drive 分享連結
+    if (url.includes("drive.google.com")) {
+      const fileId = url.split('/d/')[1]?.split('/')[0];
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+
+    // 2. 處理 img/ 開頭的本地路徑
+    if (url.startsWith("img/")) {
+      return "https://posfront-psi.vercel.app/" + url;
+    }
+
+    // 3. 其他完整 URL 直接回傳
+    return url;
+  };
+
   return (
     <div className="container">
       <header className="page-header">
@@ -277,7 +295,7 @@ const ITEM = ({ API_BASE }) => {
                   <td data-label="圖片">
                     {item.PICTURE_URL ? (
                       <img
-                        src={item.PICTURE_URL}
+                        src={formatImageUrl(item.PICTURE_URL)}
                         alt={item.ITEM_NAME}
                         className="item-thumbnail"
                         onError={handleImgError}
