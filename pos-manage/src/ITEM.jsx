@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ITEM = ({ API_BASE }) => {
   const [items, setItems] = useState([]);
@@ -6,10 +6,6 @@ const ITEM = ({ API_BASE }) => {
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // --- 無限下拉專用狀態與 Ref ---
-  const [displayLimit, setDisplayLimit] = useState(20);
-  const observerTarget = useRef(null);
 
   // --- 定義品項種類選項 ---
   const ITEM_TYPES = [
@@ -27,8 +23,9 @@ const ITEM = ({ API_BASE }) => {
     { value: 'OTHER', label: '其他 (OTHER)' }
   ];
 
-  const [sortConfig, setSortConfig] = useState({ key: 'ITEM_ID', direction: 'desc' }); // 預設改用 desc 讓最新新增的在上面比較好找
+  const [sortConfig, setSortConfig] = useState({ key: 'ITEM_ID', direction: 'asc' });
 
+  
   const fetchItems = async () => {
     setLoading(true);
     try {
@@ -50,8 +47,6 @@ const ITEM = ({ API_BASE }) => {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
-    // 切換排序時，重置顯示筆數，讓畫面回到最頂端
-    setDisplayLimit(20);
   };
 
   const getSortedItems = () => {
@@ -111,7 +106,7 @@ const ITEM = ({ API_BASE }) => {
   };
 
   const deleteItem = async (id) => {
-    if (!window.confirm('確定要刪除這個品項嗎？')) return;
+    if (!window.confirm('Are you sure you want to delete this item?')) return;
     try {
       const response = await fetch(`${API_BASE}/ITEM/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete item');
@@ -128,8 +123,6 @@ const ITEM = ({ API_BASE }) => {
 
   const handleEdit = (item) => {
     setEditingItem({ ...item });
-    // 編輯時自動滾動到最上方表單
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const toggleActive = async (id, currentActive) => {
@@ -148,40 +141,14 @@ const ITEM = ({ API_BASE }) => {
     }
   };
 
-  // 初始載入資料
   useEffect(() => {
     fetchItems();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // 無限下拉：Intersection Observer 監聽邏輯
-  useEffect(() => {
-    // 如果正在載入資料，先不綁定觀察器 (因為此時 table 還沒渲染)
-    if (loading) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // 當畫面滑到觀察目標時，把顯示數量加上 20 筆
-        if (entries[0].isIntersecting) {
-          setDisplayLimit((prevLimit) => prevLimit + 20);
-        }
-      },
-      { threshold: 0.1, rootMargin: '0px 0px 200px 0px' } // 提早 200px 觸發載入
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) observer.unobserve(currentTarget);
-    };
-  }, [loading]); // 依賴 loading，確保 table 渲染出來後再綁定
 
   const [expandedId, setExpandedId] = useState(null);
 
   const toggleDescription = (id) => {
+    // 如果點擊的是已經展開的，就收起來；否則展開新的
     setExpandedId(expandedId === id ? null : id);
   };
 
@@ -192,12 +159,14 @@ const ITEM = ({ API_BASE }) => {
   };
 
   const handleImgError = (e) => {
+    // 當圖片加載失敗時，替換為預設圖片路徑
     e.target.src = "https://posfront-psi.vercel.app/placeholder.png";
   };
 
   const formatImageUrl = (url) => {
     if (!url) return "https://posfront-psi.vercel.app/placeholder.png";
 
+    // 1. 處理 Google Drive 分享連結
     if (url.includes("drive.google.com")) {
       let fileId = "";
       try {
@@ -206,18 +175,22 @@ const ITEM = ({ API_BASE }) => {
         } else if (url.includes("id=")) {
           fileId = url.split('id=')[1]?.split('&')[0];
         }
-        // 修復了字串串接 Bug，並改用穩定性較高的快取路徑 2
-        return `https://googleusercontent.com/profile/picture/2${fileId}`;
+        
+        // 使用 Google 圖片快取伺服器，這對 React 顯示最穩定
+        return `https://lh3.googleusercontent.com/u/0/d/${fileId}`;
       } catch (e) {
         return "https://posfront-psi.vercel.app/placeholder.png";
       }
     }
 
+    // 2. 處理 img/ 開頭的本地路徑
     if (url.startsWith("img/")) {
+      // 確保 base url 後面只有一個斜線
       const baseUrl = "https://posfront-psi.vercel.app/";
       return baseUrl + url;
     }
 
+    // 3. 其他完整 URL (http:// 或 https://) 直接回傳
     return url;
   };
 
@@ -328,8 +301,7 @@ const ITEM = ({ API_BASE }) => {
               </tr>
             </thead>
             <tbody>
-              {/* 利用 slice 限制只渲染當前 displayLimit 數量的資料 */}
-              {sortedItems.slice(0, displayLimit).map(item => (
+              {sortedItems.map(item => (
                 <tr key={item.ITEM_ID}>
                   <td data-label="ID">{item.ITEM_ID}</td>
                   <td data-label="圖片">
@@ -353,10 +325,9 @@ const ITEM = ({ API_BASE }) => {
                     {item.Description}
                   </td>
                   <td data-label="操作" className="action-cell">
-                    <button type="button" className="btn-edit" onClick={() => handleEdit(item)}>編輯</button>
-                    <button type="button" className="btn-delete" onClick={() => deleteItem(item.ITEM_ID)}>刪除</button>
+                    <button className="btn-edit" onClick={() => handleEdit(item)}>編輯</button>
+                    <button className="btn-delete" onClick={() => deleteItem(item.ITEM_ID)}>刪除</button>
                     <button
-                      type="button"
                       className={`active-toggle-btn ${item.is_active === 1 || item.is_active === '1' ? 'active' : 'inactive'}`}
                       onClick={() => toggleActive(item.ITEM_ID, item.is_active)}
                     >
@@ -365,15 +336,6 @@ const ITEM = ({ API_BASE }) => {
                   </td>
                 </tr>
               ))}
-              
-              {/* 如果還有更多資料未顯示，渲染這個隱藏的觀察目標來觸發載入 */}
-              {displayLimit < sortedItems.length && (
-                <tr ref={observerTarget}>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
-                    向下捲動載入更多...
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         )}
@@ -383,3 +345,4 @@ const ITEM = ({ API_BASE }) => {
 };
 
 export default ITEM;
+修改成完整程式
