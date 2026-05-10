@@ -25,7 +25,7 @@ const ITEM = ({ API_BASE }) => {
 
   const [sortConfig, setSortConfig] = useState({ key: 'ITEM_ID', direction: 'asc' });
 
-  // ... (fetchItems, requestSort, getSortedItems 邏輯保持不變) ...
+  
   const fetchItems = async () => {
     setLoading(true);
     try {
@@ -145,7 +145,6 @@ const ITEM = ({ API_BASE }) => {
     fetchItems();
   }, []);
 
-  // 在 ITEM 組件內部，其他 useState 附近加入
   const [expandedId, setExpandedId] = useState(null);
 
   const toggleDescription = (id) => {
@@ -162,6 +161,37 @@ const ITEM = ({ API_BASE }) => {
   const handleImgError = (e) => {
     // 當圖片加載失敗時，替換為預設圖片路徑
     e.target.src = "https://posfront-psi.vercel.app/placeholder.png";
+  };
+
+  const formatImageUrl = (url) => {
+    if (!url) return "https://posfront-psi.vercel.app/placeholder.png";
+
+    // 1. 處理 Google Drive 分享連結
+    if (url.includes("drive.google.com")) {
+      let fileId = "";
+      try {
+        if (url.includes("/d/")) {
+          fileId = url.split('/d/')[1]?.split('/')[0];
+        } else if (url.includes("id=")) {
+          fileId = url.split('id=')[1]?.split('&')[0];
+        }
+        
+        // 使用 Google 圖片快取伺服器，這對 React 顯示最穩定
+        return `https://lh3.googleusercontent.com/u/0/d/${fileId}`;
+      } catch (e) {
+        return "https://posfront-psi.vercel.app/placeholder.png";
+      }
+    }
+
+    // 2. 處理 img/ 開頭的本地路徑
+    if (url.startsWith("img/")) {
+      // 確保 base url 後面只有一個斜線
+      const baseUrl = "https://posfront-psi.vercel.app/";
+      return baseUrl + url;
+    }
+
+    // 3. 其他完整 URL (http:// 或 https://) 直接回傳
+    return url;
   };
 
   return (
@@ -277,7 +307,7 @@ const ITEM = ({ API_BASE }) => {
                   <td data-label="圖片">
                     {item.PICTURE_URL ? (
                       <img
-                        src={"https://posfront-psi.vercel.app/" + item.PICTURE_URL}
+                        src={formatImageUrl(item.PICTURE_URL)}
                         alt={item.ITEM_NAME}
                         className="item-thumbnail"
                         onError={handleImgError}
