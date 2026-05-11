@@ -20,7 +20,7 @@ const ITEM = ({ API_BASE }) => {
     { value: 'TASTING_RUM', label: '單杯 蘭姆 (TASTING RUM)' },
     { value: 'TASTING_VODKA', label: '單杯 伏特加 (TASTING VODKA)' },
     { value: 'TASTING_TEQUILA', label: '單杯 龍舌蘭 (TASTING TEQUILA)' },
-    { value: 'TASTING_BRANDY', label: '單杯 利口酒 (TASTING_BRANDY)' },
+    { value: 'TASTING_BRANDY', label: '單杯 白蘭地 (TASTING_BRANDY)' },
     { value: 'OTHER', label: '其他 (OTHER)' }
   ];
 
