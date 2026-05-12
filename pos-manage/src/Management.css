@@ -770,7 +770,14 @@ select {
   border-radius: 0;
   width: 100%;
   max-width: 720px;
-
+}
+.audit-detail {
+  background: #fff !important;
+  color: #000 !important;
+  padding: 40px;
+  margin-top: 20px;
+  border-radius: 0;
+  width: 100%;
 }
 
 .inner-detail-table {
