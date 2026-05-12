@@ -79,9 +79,7 @@ const Home = ({ API_BASE }) => {
 
                     {/* --- 結合 Management.css 風格的商品銷售統計區域 --- */}
                     <div className="audit-detail" style={{ marginTop: '30px' }}>
-                        <h2 style={{ color: 'var(--gold)', marginBottom: '20px', borderLeft: '4px solid var(--gold)', paddingLeft: '15px' }}>
-                            商品銷售統計
-                        </h2>
+                        <h2>銷售統計</h2>
                         
                         {/* 日期選擇控制列 */}
                         <div style={{ marginBottom: '20px', display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
