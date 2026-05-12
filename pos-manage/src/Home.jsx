@@ -2,47 +2,50 @@ import React, { useState, useEffect } from 'react';
 
 const Home = ({ API_BASE }) => {
     const [summary, setSummary] = useState({ revenue: 0, pending: 0, totalOrders: 0 });
+    // 新增：儲存今日商品銷售統計
+    const [itemSales, setItemSales] = useState([]);
     const today = new Date().toLocaleDateString('sv-SE').split('T')[0];
 
     useEffect(() => {
-        const fetchBusinessStatus = async () => {
+        const fetchBusinessData = async () => {
             try {
-                const response = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${today}`);
-                const data = await response.json();
+                // 1. 抓取營業額概要資料
+                const summaryRes = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${today}`);
+                const summaryData = await summaryRes.json();
 
-                if (Array.isArray(data)) {
-                    // 1. 計算今日總訂單數 (以唯一 ORDER_ID 計數)
-                    const uniqueOrders = [...new Set(data.map(item => item.ORDER_ID))];
-
-                    // 2. 修正營收計算：改用 ORDER_MOUNT 欄位
-                    const dailyRevenue = data.reduce((acc, curr) => {
-                        // 確保使用 PRICE_AT_SALE (這是我們在 SQL 給的別名)
+                if (Array.isArray(summaryData)) {
+                    const uniqueOrders = [...new Set(summaryData.map(item => item.ORDER_ID))];
+                    const dailyRevenue = summaryData.reduce((acc, curr) => {
                         const price = Number(curr.PRICE_AT_SALE) || 0;
                         const qty = Number(curr.QUANTITY) || 0;
                         return acc + (price * qty);
                     }, 0);
-
-                    // 3. 計算待出餐：根據你的 JSON，欄位似乎改成了 SEND
-                    // 假設 SEND === 0 代表尚未出餐
-                    const pendingCount = data.filter(item => item.SEND === 0).length;
+                    const pendingCount = summaryData.filter(item => item.SEND === 0).length;
 
                     setSummary({
                         revenue: dailyRevenue,
                         pending: pendingCount,
                         totalOrders: uniqueOrders.length
                     });
-                } else {
-                    console.error("回傳資料不是陣列:", data);
                 }
+
+                // 2. 抓取今日每樣商品售出數量 (呼叫新 API)
+                // 這裡將 startDate 與 endDate 都設為 today 即可取得今日統計
+                const salesRes = await fetch(`${API_BASE}/GetEachItem?startDate=${today}&endDate=${today}`);
+                const salesData = await salesRes.json();
+                if (Array.isArray(salesData)) {
+                    setItemSales(salesData);
+                }
+
             } catch (err) {
-                console.error("無法讀取營業狀況:", err);
+                console.error("讀取資料失敗:", err);
             }
         };
 
-        fetchBusinessStatus();
-        const timer = setInterval(fetchBusinessStatus, 60000); // 每分鐘自動刷新
+        fetchBusinessData();
+        const timer = setInterval(fetchBusinessData, 60000); // 每分鐘自動刷新
         return () => clearInterval(timer);
-    }, [today]);
+    }, [today, API_BASE]);
 
     return (
         <div className="container">
@@ -52,28 +55,55 @@ const Home = ({ API_BASE }) => {
                     <p className="home-date">今日日期：{today}</p>
                 </header>
 
-                {/* 營業狀況摘要網格：透過 CSS 控制 RWD */}
+                {/* 營業狀況摘要網格 */}
                 <div className="summary-grid">
-                    {/* 營收卡片 */}
                     <div className="status-card card-revenue">
                         <div className="status-label">今日總營收</div>
                         <div className="status-value">${summary.revenue.toLocaleString()}</div>
                     </div>
-
-                    {/* 訂單卡片 */}
                     <div className="status-card card-orders">
                         <div className="status-label">今日訂單數</div>
                         <div className="status-value">{summary.totalOrders} 筆</div>
                     </div>
-
-                    {/* 待出餐卡片 */}
                     <div className="status-card card-pending">
                         <div className="status-label">待出餐項目</div>
                         <div className="status-value">{summary.pending} 件</div>
                     </div>
                 </div>
 
-                {/* 功能管理選單：預留擴充網格 */}
+                {/* 新增：今日商品銷售排行區域 */}
+                <div className="sales-rank-section" style={{ marginTop: '30px' }}>
+                    <h2 style={{ marginBottom: '15px', fontSize: '1.2rem', color: '#333' }}>今日熱銷排行</h2>
+                    <div className="rank-table-container" style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr style={{ backgroundColor: '#f8f9fa', textAlign: 'left', borderBottom: '2px solid #eee' }}>
+                                    <th style={{ padding: '12px' }}>商品名稱</th>
+                                    <th style={{ padding: '12px' }}>類別</th>
+                                    <th style={{ padding: '12px', textAlign: 'right' }}>銷售數量</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {itemSales.length > 0 ? (
+                                    itemSales.map((item, index) => (
+                                        <tr key={item.ITEM_ID} style={{ borderBottom: '1px solid #eee' }}>
+                                            <td style={{ padding: '12px' }}>{item.ITEM_NAME}</td>
+                                            <td style={{ padding: '12px' }}><span className="badge">{item.Type}</span></td>
+                                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', color: '#007bff' }}>
+                                                {item.TOTAL_QUANTITY}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#999' }}>今日暫無銷售數據</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div className="menu-grid">
                     {/* 未來可加入快速跳轉按鈕 */}
                 </div>
