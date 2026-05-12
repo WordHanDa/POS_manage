@@ -2,23 +2,18 @@ import React, { useState, useEffect } from 'react';
 
 const Home = ({ API_BASE }) => {
     const [summary, setSummary] = useState({ revenue: 0, pending: 0, totalOrders: 0 });
-    // 商品銷售統計狀態
     const [eachItemSales, setEachItemSales] = useState([]);
     
-    // 預設今日日期 (YYYY-MM-DD)
     const today = new Date().toLocaleDateString('sv-SE').split('T')[0];
     
-    // 日期選擇器的狀態，預設為今日
     const [startDate, setStartDate] = useState(today);
     const [endDate, setEndDate] = useState(today);
 
-    // 1. 原有的營業狀況讀取 (每分鐘刷新)
     useEffect(() => {
         const fetchBusinessStatus = async () => {
             try {
                 const response = await fetch(`${API_BASE}/REVENUE_DETAILS_BY_DATE?date=${today}`);
                 const data = await response.json();
-
                 if (Array.isArray(data)) {
                     const uniqueOrders = [...new Set(data.map(item => item.ORDER_ID))];
                     const dailyRevenue = data.reduce((acc, curr) => {
@@ -44,7 +39,6 @@ const Home = ({ API_BASE }) => {
         return () => clearInterval(timer);
     }, [today, API_BASE]);
 
-    // 2. 新增：讀取每樣商品銷售統計
     const fetchEachItemSales = async () => {
         try {
             const response = await fetch(`${API_BASE}/GetEachItem?startDate=${startDate}&endDate=${endDate}`);
@@ -55,90 +49,105 @@ const Home = ({ API_BASE }) => {
         }
     };
 
-    // 當日期變更時自動抓取一次統計資料
     useEffect(() => {
         fetchEachItemSales();
     }, [startDate, endDate]);
 
     return (
-        <div className="container">
-            <div className="item-form main-status-box">
-                <header className="home-header">
-                    <h1>營業狀況</h1>
-                    <p className="home-date">今日日期：{today}</p>
-                </header>
+        <div className="main-container"> {/* 使用 CSS 中的全螢幕背景 */}
+            <div className="container">
+                <div className="item-form main-status-box">
+                    <header className="home-header">
+                        <h1>營業狀況</h1>
+                        <p className="home-date">今日日期：{today}</p>
+                    </header>
 
-                <div className="summary-grid">
-                    <div className="status-card card-revenue">
-                        <div className="status-label">今日總營收</div>
-                        <div className="status-value">${summary.revenue.toLocaleString()}</div>
+                    <div className="summary-grid">
+                        <div className="status-card card-revenue">
+                            <div className="status-label">今日總營收</div>
+                            <div className="status-value">${summary.revenue.toLocaleString()}</div>
+                        </div>
+                        <div className="status-card card-orders">
+                            <div className="status-label">今日訂單數</div>
+                            <div className="status-value">{summary.totalOrders} 筆</div>
+                        </div>
+                        <div className="status-card card-pending">
+                            <div className="status-label">待出餐項目</div>
+                            <div className="status-value">{summary.pending} 件</div>
+                        </div>
                     </div>
-                    <div className="status-card card-orders">
-                        <div className="status-label">今日訂單數</div>
-                        <div className="status-value">{summary.totalOrders} 筆</div>
-                    </div>
-                    <div className="status-card card-pending">
-                        <div className="status-label">待出餐項目</div>
-                        <div className="status-value">{summary.pending} 件</div>
-                    </div>
-                </div>
 
-                {/* --- 新增：商品銷售統計區域 (無自訂 CSS) --- */}
-                <div style={{ marginTop: '40px', borderTop: '1px solid #ccc' }}>
-                    <h3>商品銷售統計 (GetEachItem)</h3>
-                    
-                    {/* 日期選擇區 */}
-                    <div>
-                        <label>開始日期：</label>
-                        <input 
-                            type="date" 
-                            value={startDate} 
-                            onChange={(e) => setStartDate(e.target.value)} 
-                        />
+                    {/* --- 結合 Management.css 風格的商品銷售統計區域 --- */}
+                    <div className="audit-detail-card" style={{ marginTop: '30px' }}>
+                        <h2 style={{ color: 'var(--gold)', marginBottom: '20px', borderLeft: '4px solid var(--gold)', paddingLeft: '15px' }}>
+                            商品銷售統計
+                        </h2>
                         
-                        <label style={{ marginLeft: '10px' }}>結束日期：</label>
-                        <input 
-                            type="date" 
-                            value={endDate} 
-                            onChange={(e) => setEndDate(e.target.value)} 
-                        />
-                        
-                        <button style={{ marginLeft: '10px' }} onClick={fetchEachItemSales}>
-                            刷新查詢
-                        </button>
-                    </div>
+                        {/* 日期選擇控制列 */}
+                        <div style={{ marginBottom: '20px', display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <div style={{ color: 'var(--black)' }}>
+                                <span style={{ marginRight: '8px' }}>區間：</span>
+                                <input 
+                                    type="date" 
+                                    value={startDate} 
+                                    onChange={(e) => setStartDate(e.target.value)} 
+                                    style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                />
+                                <span style={{ margin: '0 8px' }}>至</span>
+                                <input 
+                                    type="date" 
+                                    value={endDate} 
+                                    onChange={(e) => setEndDate(e.target.value)} 
+                                    style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                />
+                            </div>
+                            <button 
+                                onClick={fetchEachItemSales}
+                                style={{
+                                    padding: '6px 15px',
+                                    backgroundColor: 'var(--dark-gray)',
+                                    color: 'var(--gold)',
+                                    border: '1px solid var(--gold)',
+                                    cursor: 'pointer',
+                                    borderRadius: '4px'
+                                }}
+                            >
+                                重新查詢
+                            </button>
+                        </div>
 
-                    {/* 資料顯示表格 */}
-                    <table border="1" style={{ marginTop: '20px', width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr>
-                                <th>商品 ID</th>
-                                <th>商品名稱</th>
-                                <th>類型</th>
-                                <th>總售出數量</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {eachItemSales.length > 0 ? (
-                                eachItemSales.map((item) => (
-                                    <tr key={item.ITEM_ID}>
-                                        <td>{item.ITEM_ID}</td>
-                                        <td>{item.ITEM_NAME}</td>
-                                        <td>{item.Type}</td>
-                                        <td style={{ textAlign: 'right' }}>{item.TOTAL_QUANTITY}</td>
-                                    </tr>
-                                ))
-                            ) : (
+                        {/* 資料列表表格 */}
+                        <table className="inner-detail-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan="4" style={{ textAlign: 'center' }}>此區間無銷售資料</td>
+                                    <th style={{ textAlign: 'left', padding: '12px' }}>商品名稱</th>
+                                    <th style={{ textAlign: 'center', padding: '12px' }}>類型</th>
+                                    <th style={{ textAlign: 'right', padding: '12px' }}>累計售出</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-                {/* --- 新增區域結束 --- */}
-
-                <div className="menu-grid">
+                            </thead>
+                            <tbody>
+                                {eachItemSales.length > 0 ? (
+                                    eachItemSales.map((item) => (
+                                        <tr key={item.ITEM_ID}>
+                                            <td style={{ padding: '12px', fontWeight: 'bold' }}>{item.ITEM_NAME}</td>
+                                            <td style={{ padding: '12px', textAlign: 'center' }}>
+                                                <span style={{ fontSize: '0.9em', color: '#666' }}>{item.Type}</span>
+                                            </td>
+                                            <td style={{ padding: '12px', textAlign: 'right', color: 'var(--black)', fontSize: '1.2em', fontWeight: 'bold' }}>
+                                                {item.TOTAL_QUANTITY} <small style={{ fontSize: '0.6em', color: '#999' }}>份</small>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="3" style={{ textAlign: 'center', padding: '30px', color: '#999' }}>
+                                            選定區間內尚無銷售紀錄
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
