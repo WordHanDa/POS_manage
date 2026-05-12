@@ -78,7 +78,7 @@ const Home = ({ API_BASE }) => {
                     </div>
 
                     {/* --- 結合 Management.css 風格的商品銷售統計區域 --- */}
-                    <div className="audit-detail-card" style={{ marginTop: '30px' }}>
+                    <div className="audit-detail" style={{ marginTop: '30px' }}>
                         <h2 style={{ color: 'var(--gold)', marginBottom: '20px', borderLeft: '4px solid var(--gold)', paddingLeft: '15px' }}>
                             商品銷售統計
                         </h2>
