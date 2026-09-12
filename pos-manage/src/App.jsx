@@ -10,7 +10,7 @@ import AUDIT from './AUDIT.jsx'
 import EVENT from './EVENT.jsx'
 import './Management.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:3002';
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://posserver-sigma.vercel.app/api';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false); // 2. 控制選單狀態
